@@ -1,0 +1,170 @@
+@import "tailwindcss";
+
+/*
+  لوحة ألوان محصورة عمدًا: أبيض + أخضر واحد + رمادي محايد،
+  مع لون تنبيه واحد يُستخدم فقط لإشارة الارتفاع.
+*/
+@theme {
+  --color-brand-50: #f0f6f2;
+  --color-brand-100: #dcebe3;
+  --color-brand-200: #bad8c8;
+  --color-brand-300: #8dbda5;
+  --color-brand-400: #5b9c7e;
+  --color-brand-500: #357f5f;
+  --color-brand-600: #1f6549;
+  --color-brand-700: #17513b;
+  --color-brand-800: #134130;
+  --color-brand-900: #0f3527;
+
+  --color-ink-50: #f7f8f8;
+  --color-ink-100: #eef0ef;
+  --color-ink-200: #e2e6e4;
+  --color-ink-300: #c4cbc8;
+  --color-ink-400: #8f9995;
+  --color-ink-500: #6b7570;
+  --color-ink-600: #4d5652;
+  --color-ink-700: #39413e;
+  --color-ink-800: #252b29;
+  --color-ink-900: #131816;
+
+  --color-alert: #b0432c;
+  --color-alert-soft: #fbf0ed;
+
+  --font-sans: var(--font-arabic), "Segoe UI", system-ui, sans-serif;
+
+  --radius-card: 1rem;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: #ffffff;
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* أرقام بعرض ثابت حتى لا "ترقص" الأرقام أثناء تحرّك المحاكاة */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ——— المؤشرات (Sliders) ——— */
+.rs-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+  touch-action: pan-y;
+}
+
+.rs-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid var(--color-brand-600);
+  box-shadow: 0 1px 3px rgb(19 24 22 / 0.18);
+  cursor: grab;
+  transition: transform 0.12s ease;
+}
+
+.rs-slider::-webkit-slider-thumb:active {
+  cursor: grabbing;
+  transform: scale(1.1);
+}
+
+.rs-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 2px solid var(--color-brand-600);
+  box-shadow: 0 1px 3px rgb(19 24 22 / 0.18);
+  cursor: grab;
+}
+
+.rs-slider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 4px var(--color-brand-200);
+}
+
+.rs-slider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 4px var(--color-brand-200);
+}
+
+/* ——— حركات خفيفة ——— */
+@keyframes rs-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes rs-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rs-grow {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.rs-rise {
+  animation: rs-rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.rs-fade {
+  animation: rs-fade 0.45s ease both;
+}
+
+.rs-grow {
+  transform-origin: right;
+  animation: rs-grow 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rs-rise,
+  .rs-fade,
+  .rs-grow {
+    animation: none;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* شريط تمرير هادئ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-ink-200);
+  border-radius: 999px;
+  border: 3px solid #fff;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink-300);
+}
