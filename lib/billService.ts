@@ -133,7 +133,7 @@ export async function verifyInvoiceContent(file: File): Promise<{ isInvoice: boo
   if (hasInvalidKeyword) {
     return {
       isInvoice: false,
-      reason: 'الصورة غير واضحة أو ليست فاتورة، يرجى التصوير في إضاءة أفضل أو الاعتماد على الإدخال اليدوي.',
+      reason: 'الصورة غير واضحة أو ليست فاتورة. يرجى التصوير في إضاءة أفضل أو استخدام الإدخال اليدوي.',
     };
   }
 
