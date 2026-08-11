@@ -12,10 +12,10 @@ import {
 import { Button, EstimateNote } from "@/components/ui/Primitives";
 import { Wordmark } from "@/components/layout/Logo";
 import { cn } from "@/lib/formatting";
-
-const ACCEPTED = ["application/pdf", "image/jpeg", "image/png"];
+import { validateInvoiceFile } from "@/lib/invoice-extraction-client";
 
 type Selected = {
+  file: File;
   name: string;
   sizeLabel: string;
   previewUrl: string | null;
@@ -29,9 +29,11 @@ function formatSize(bytes: number) {
 
 export function UploadScreen({
   onAnalyze,
+  onDemo,
   onBack,
 }: {
-  onAnalyze: () => void;
+  onAnalyze: (file: File) => void;
+  onDemo: () => void;
   onBack: () => void;
 }) {
   const [dragging, setDragging] = useState(false);
@@ -47,8 +49,9 @@ export function UploadScreen({
   }, []);
 
   const accept = useCallback((file: File) => {
-    if (!ACCEPTED.includes(file.type)) {
-      setError("الرجاء اختيار ملف بصيغة PDF أو JPG أو PNG.");
+    const validationError = validateInvoiceFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
     if (previewRef.current) URL.revokeObjectURL(previewRef.current);
@@ -58,6 +61,7 @@ export function UploadScreen({
     previewRef.current = previewUrl;
     setError(null);
     setSelected({
+      file,
       name: file.name,
       sizeLabel: formatSize(file.size),
       previewUrl,
@@ -94,7 +98,6 @@ export function UploadScreen({
           </p>
         </div>
 
-        {/* منطقة الرفع */}
         {!selected ? (
           <div
             className={cn(
@@ -135,7 +138,7 @@ export function UploadScreen({
             </Button>
 
             <p className="mt-6 text-xs tracking-wide text-ink-400">
-              PDF / JPG / PNG
+              PDF / JPG / PNG · حتى 15 ميجابايت
             </p>
 
             <input
@@ -150,7 +153,6 @@ export function UploadScreen({
             />
           </div>
         ) : (
-          /* حالة الملف المختار */
           <div className="rs-rise mt-8 overflow-hidden rounded-2xl border border-ink-200">
             <div className="flex items-center gap-4 border-b border-ink-100 p-5">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50">
@@ -196,25 +198,33 @@ export function UploadScreen({
         )}
 
         {error ? (
-          <p className="mt-4 rounded-xl bg-alert-soft px-4 py-3 text-sm text-alert">
+          <p
+            role="alert"
+            className="mt-4 rounded-xl bg-alert-soft px-4 py-3 text-sm text-alert"
+          >
             {error}
           </p>
         ) : null}
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Button size="lg" disabled={!selected} onClick={onAnalyze}>
+          <Button
+            size="lg"
+            disabled={!selected}
+            onClick={() => selected && onAnalyze(selected.file)}
+          >
             حلّل الفاتورة
             <ArrowLeft className="h-4 w-4" />
           </Button>
-          <Button size="lg" variant="secondary" onClick={onAnalyze}>
+          <Button size="lg" variant="secondary" onClick={onDemo}>
             <Sparkles className="h-4 w-4" />
             استخدم فاتورة تجريبية
           </Button>
         </div>
 
         <EstimateNote className="mt-8">
-          في هذا النموذج الأولي لا يُرفع الملف إلى أي خادم ولا يغادر جهازك.
-          التحليل يعتمد على بيانات منزل تجريبية لعرض التجربة.
+          عند تحليل فاتورة حقيقية، تُرسَل الصورة إلى خادم رشيد لقراءتها عبر Gemini
+          Vision ثم تُستخدم البيانات المستخرجة في لوحة النتائج. لا تُخزَّن
+          الفاتورة بعد المعالجة في هذا الإصدار.
         </EstimateNote>
       </main>
     </div>

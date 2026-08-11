@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { Card, Button, EstimateNote, Chip } from "@/components/ui/Primitives";
 import type { SectionId } from "@/components/layout/DashboardShell";
-import { electricityBill, electricityHistory, waterBill } from "@/data/mock-bill";
+import { useBillData } from "@/components/BillDataProvider";
+import { electricityHistory } from "@/data/mock-bill";
 import { household, weather } from "@/data/mock-household";
 import { consumptionBreakdown } from "@/data/mock-analysis";
 import { currentScenario, planScenario } from "@/lib/simulation";
@@ -26,6 +27,7 @@ import {
 } from "@/lib/formatting";
 
 export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }) {
+  const { electricityBill, waterBill, source } = useBillData();
   const billChange = changePercent(
     electricityBill.amountSar,
     electricityBill.previousAmountSar
@@ -60,6 +62,9 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
                 <span className="text-xs text-ink-400">
                   · {electricityBill.periodLabel}
                 </span>
+                {source === "extracted" ? (
+                  <Chip className="text-xs">مقروءة من فاتورتك</Chip>
+                ) : null}
               </div>
 
               <div className="mt-4 flex flex-wrap items-end gap-x-4 gap-y-2">

@@ -1,26 +1,131 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Check, Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { AlertCircle, Check, Loader2 } from "lucide-react";
 import { analysisSteps } from "@/data/mock-analysis";
 import { LogoMark } from "@/components/layout/Logo";
+import { Button } from "@/components/ui/Primitives";
 import { cn } from "@/lib/formatting";
+import { extractInvoiceFromFile } from "@/lib/invoice-extraction-client";
+import type { ExtractedInvoice } from "@/types/extracted-invoice";
 
 const STEP_MS = 780;
 
-export function AnalyzingScreen({ onDone }: { onDone: () => void }) {
+export type AnalysisOutcome =
+  | { mode: "demo" }
+  | { mode: "extracted"; data: ExtractedInvoice }
+  | { mode: "error"; error: string; retryable: boolean };
+
+export function AnalyzingScreen({
+  file,
+  demo,
+  onDone,
+  onRetry,
+  onBack,
+}: {
+  file: File | null;
+  demo: boolean;
+  onDone: (outcome: AnalysisOutcome) => void;
+  onRetry: () => void;
+  onBack: () => void;
+}) {
   const [step, setStep] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const [retryable, setRetryable] = useState(false);
+  const [extractionDone, setExtractionDone] = useState(demo);
+  const [extractedData, setExtractedData] = useState<ExtractedInvoice | null>(
+    null,
+  );
+  const doneRef = useRef(false);
 
   useEffect(() => {
-    if (step >= analysisSteps.length) {
-      const timeout = setTimeout(onDone, 420);
+    doneRef.current = false;
+    setExtractedData(null);
+    setExtractionDone(demo);
+    setStep(0);
+    setError(null);
+    setRetryable(false);
+  }, [file, demo]);
+
+  useEffect(() => {
+    if (demo || !file) return;
+
+    const controller = new AbortController();
+
+    extractInvoiceFromFile(file, controller.signal).then((result) => {
+      if (controller.signal.aborted) return;
+      if (result.ok) {
+        setExtractedData(result.data);
+        setExtractionDone(true);
+        return;
+      }
+      setError(result.error);
+      setRetryable(result.retryable ?? false);
+    });
+
+    return () => controller.abort();
+  }, [demo, file]);
+
+  useEffect(() => {
+    if (error) return;
+
+    const animationDone = step >= analysisSteps.length;
+
+    if (!animationDone) {
+      const timeout = setTimeout(() => setStep((s) => s + 1), STEP_MS);
       return () => clearTimeout(timeout);
     }
-    const timeout = setTimeout(() => setStep((s) => s + 1), STEP_MS);
+
+    if (!extractionDone) return;
+
+    const timeout = setTimeout(() => {
+      if (doneRef.current) return;
+      doneRef.current = true;
+
+      if (demo) {
+        onDone({ mode: "demo" });
+        return;
+      }
+
+      if (extractedData) {
+        onDone({ mode: "extracted", data: extractedData });
+        return;
+      }
+
+      setError("تعذّر قراءة الفاتورة. حاول مرة أخرى أو استخدم الفاتورة التجريبية.");
+      setRetryable(true);
+    }, 420);
+
     return () => clearTimeout(timeout);
-  }, [step, onDone]);
+  }, [step, onDone, demo, error, extractionDone, extractedData]);
 
   const progress = Math.min(step / analysisSteps.length, 1);
+
+  if (error) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-white px-5 py-12">
+        <div className="w-full max-w-md text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-alert-soft">
+            <AlertCircle className="h-8 w-8 text-alert" strokeWidth={1.75} />
+          </div>
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink-900">
+            تعذّر تحليل الفاتورة
+          </h1>
+          <p className="mt-3 text-sm leading-relaxed text-ink-600">{error}</p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            {retryable ? (
+              <Button size="lg" onClick={onRetry}>
+                إعادة المحاولة
+              </Button>
+            ) : null}
+            <Button size="lg" variant="secondary" onClick={onBack}>
+              العودة للرفع
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-white px-5 py-12">
@@ -60,7 +165,9 @@ export function AnalyzingScreen({ onDone }: { onDone: () => void }) {
             جاري تحليل فاتورتك...
           </h1>
           <p className="mt-2 text-sm text-ink-500">
-            نقرأ بيانات الفاتورة ونربطها بطقس مدينتك لإعداد خطة مناسبة لمنزلك.
+            {demo
+              ? "نعرض تجربة كاملة ببيانات منزل تجريبية."
+              : "نقرأ بيانات الفاتورة عبر Gemini Vision ونربطها بخطة ترشيد مناسبة."}
           </p>
         </div>
 
