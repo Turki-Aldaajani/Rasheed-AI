@@ -44,6 +44,10 @@ export function UploadScreen({
   const [manualKwh, setManualKwh] = useState("");
   const [manualPeriod, setManualPeriod] = useState("أغسطس 2026");
   
+  // OCR missing price validation
+  const [isPriceMissing, setIsPriceMissing] = useState(false);
+  const [editablePrice, setEditablePrice] = useState("");
+  
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -155,15 +159,59 @@ export function UploadScreen({
 
     setUploadState('done');
     setProgress(100);
-    setResult(uploadResult.data || null);
+    
+    const parsedData = uploadResult.data;
+    setResult(parsedData || null);
 
-    // Refresh Next.js page data cache so the dashboard updates
-    router.refresh();
+    // Check if price is missing in parsed results
+    if (!parsedData || parsedData.amount_sar === undefined || parsedData.amount_sar === null) {
+      setIsPriceMissing(true);
+      setEditablePrice(""); // fallback to empty string to prevent crashes
+    } else {
+      setIsPriceMissing(false);
+      setEditablePrice(String(parsedData.amount_sar));
+      
+      // Save valid data to local storage for dynamic dashboard sync
+      localStorage.setItem('rasheed_manual_bill', JSON.stringify({
+        amount: parsedData.amount_sar,
+        kwh: parsedData.consumption_kwh || 1420,
+        period: file.name.includes('.') ? file.name.split('.')[0] : 'أغسطس 2026',
+        timestamp: Date.now()
+      }));
 
-    // Call onAnalyze parent callback after a brief success animation delay
-    setTimeout(() => {
+      // Refresh Next.js page data cache so the dashboard updates
+      router.refresh();
+
+      // Navigate automatically after success delay
+      setTimeout(() => {
+        onAnalyze();
+      }, 1500);
+    }
+  };
+
+  const handleConfirmPrice = async () => {
+    const priceNum = parseFloat(editablePrice);
+    if (isNaN(priceNum) || priceNum <= 0) {
+      setError("الرجاء إدخال مبلغ صحيح للفاتورة.");
+      return;
+    }
+
+    try {
+      // Save manual modification to local storage
+      localStorage.setItem('rasheed_manual_bill', JSON.stringify({
+        amount: priceNum,
+        kwh: result?.consumption_kwh || 1420,
+        period: file?.name.includes('.') ? file.name.split('.')[0] : 'أغسطس 2026',
+        timestamp: Date.now()
+      }));
+
+      // Refresh Next.js page data cache
+      router.refresh();
       onAnalyze();
-    }, 1500);
+    } catch (err) {
+      console.error("Error in handleConfirmPrice:", err);
+      setError("حدث خطأ أثناء حفظ السعر.");
+    }
   };
 
   const handleManualSubmit = async (e: React.FormEvent) => {
@@ -502,12 +550,40 @@ export function UploadScreen({
             </div>
             <div className={styles.alertContent}>
               <h4 className={styles.alertTitle}>تم رفع الفاتورة ومعالجتها بنجاح!</h4>
-              <p>يتم الآن نقلك إلى لوحة التحليلات الخاصة بالاستهلاك...</p>
-              <ul className={styles.alertDetails}>
-                <li><strong>اسم الملف:</strong> {result.file_name}</li>
-                <li><strong>الحجم بعد التحسين:</strong> {formatFileSize(result.file_size)}</li>
-                <li><strong>الرابط السحابي:</strong> <a href={result.storage_url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>معاينة الملف المرفوع</a></li>
-              </ul>
+              {isPriceMissing ? (
+                <div className="space-y-3 mt-2">
+                  <p className="text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-xs font-semibold">
+                    ⚠️ لم يتم العثور على السعر بوضوح في الفاتورة، يرجى إدخاله يدوياً.
+                  </p>
+                  
+                  <div className="space-y-1">
+                    <label className="block text-xs font-bold text-brand-800">مبلغ الفاتورة (ريال سعودي):</label>
+                    <input
+                      type="number"
+                      required
+                      placeholder="أدخل السعر هنا..."
+                      value={editablePrice}
+                      onChange={(e) => setEditablePrice(e.target.value)}
+                      className="w-full px-3 py-1.5 rounded border border-brand-300 focus:outline-none focus:border-brand-600 bg-white text-ink-900 text-sm"
+                    />
+                  </div>
+                  
+                  <Button size="md" className="w-full justify-center mt-2" onClick={handleConfirmPrice}>
+                    تأكيد المتابعة
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <>
+                  <p>يتم الآن نقلك إلى لوحة التحليلات الخاصة بالاستهلاك...</p>
+                  <ul className={styles.alertDetails}>
+                    <li><strong>اسم الملف:</strong> {result.file_name}</li>
+                    <li><strong>الحجم بعد التحسين:</strong> {formatFileSize(result.file_size)}</li>
+                    <li><strong>المبلغ المستخرج:</strong> {editablePrice} ريال سعودي</li>
+                    <li><strong>الرابط السحابي:</strong> <a href={result.storage_url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>معاينة الملف المرفوع</a></li>
+                  </ul>
+                </>
+              )}
             </div>
           </div>
         )}
