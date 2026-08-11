@@ -94,7 +94,7 @@ INSERT INTO public.tariffs (id, utility_type, customer_category, name, min_consu
   ('cccccccc-0000-0000-0000-000000000002'::uuid, 'electricity', 'residential',
    'Test Tier 2 (2001–4000 kWh)', 2000, 4000, 0.3000, 0, '2024-01-01');
 
-RAISE NOTICE '✅ Setup complete — test data inserted as superuser.';
+DO $$ BEGIN RAISE NOTICE '✅ Setup complete — test data inserted as superuser.'; END $$;
 
 
 -- ============================================================================
@@ -394,11 +394,13 @@ $$;
 -- ============================================================================
 
 RESET ROLE;
-RAISE NOTICE '';
-RAISE NOTICE '============================================';
-RAISE NOTICE '  ALL RLS ISOLATION TESTS PASSED ✅';
-RAISE NOTICE '============================================';
-RAISE NOTICE '';
+DO $$ BEGIN
+  RAISE NOTICE '';
+  RAISE NOTICE '============================================';
+  RAISE NOTICE '  ALL RLS ISOLATION TESTS PASSED ✅';
+  RAISE NOTICE '============================================';
+  RAISE NOTICE '';
+END $$;
 
 -- Roll back all test data — leaves the database clean
 ROLLBACK;
