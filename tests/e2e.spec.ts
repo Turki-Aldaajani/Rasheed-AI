@@ -29,7 +29,7 @@ test.describe('Rasheed Core Flow (Issue #25)', () => {
 
     // 4. Dashboard (Wait for analysis to finish - max 10s based on mock)
     await expect(page.getByText('فاتورتك الحالية')).toBeVisible({ timeout: 15000 });
-    
+
     // Verify some dashboard elements
     await expect(page.getByText('مع خطة رشيد')).toBeVisible();
 
@@ -40,7 +40,7 @@ test.describe('Rasheed Core Flow (Issue #25)', () => {
 
   test('Invalid/failure path: Upload unsupported file type', async ({ page }) => {
     await page.goto('/');
-    
+
     await page.getByRole('button', { name: 'حلّل فاتورتك', exact: true }).click();
 
     const dummyFile = {
