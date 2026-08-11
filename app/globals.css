@@ -1,39 +1,5 @@
 @import "tailwindcss";
-
-/*
-  لوحة ألوان محصورة عمدًا: أبيض + أخضر واحد + رمادي محايد،
-  مع لون تنبيه واحد يُستخدم فقط لإشارة الارتفاع.
-*/
-@theme {
-  --color-brand-50: #f0f6f2;
-  --color-brand-100: #dcebe3;
-  --color-brand-200: #bad8c8;
-  --color-brand-300: #8dbda5;
-  --color-brand-400: #5b9c7e;
-  --color-brand-500: #357f5f;
-  --color-brand-600: #1f6549;
-  --color-brand-700: #17513b;
-  --color-brand-800: #134130;
-  --color-brand-900: #0f3527;
-
-  --color-ink-50: #f7f8f8;
-  --color-ink-100: #eef0ef;
-  --color-ink-200: #e2e6e4;
-  --color-ink-300: #c4cbc8;
-  --color-ink-400: #8f9995;
-  --color-ink-500: #6b7570;
-  --color-ink-600: #4d5652;
-  --color-ink-700: #39413e;
-  --color-ink-800: #252b29;
-  --color-ink-900: #131816;
-
-  --color-alert: #b0432c;
-  --color-alert-soft: #fbf0ed;
-
-  --font-sans: var(--font-arabic), "Segoe UI", system-ui, sans-serif;
-
-  --radius-card: 1rem;
-}
+@import "../styles/tokens.css";
 
 html {
   -webkit-text-size-adjust: 100%;

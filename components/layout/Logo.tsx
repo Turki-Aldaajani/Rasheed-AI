@@ -39,9 +39,9 @@ export function Wordmark({
     <div className={cn("flex items-center gap-2.5", className)}>
       <LogoMark className="h-8 w-8 text-brand-700" />
       <div className="leading-tight">
-        <div className="text-lg font-bold tracking-tight text-ink-900">رشيد</div>
+        <div className="text-lg font-bold tracking-tight text-text-main">رشيد</div>
         {subtitle ? (
-          <div className="text-[11px] text-ink-500">{subtitle}</div>
+          <div className="text-[11px] text-text-muted">{subtitle}</div>
         ) : null}
       </div>
     </div>

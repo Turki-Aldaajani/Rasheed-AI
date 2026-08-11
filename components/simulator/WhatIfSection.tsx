@@ -128,7 +128,7 @@ export function WhatIfSection({
                   "طبّق خطة رشيد"
                 )}
               </Button>
-              <p className="mt-2.5 text-center text-xs text-ink-400">
+              <p className="mt-2.5 text-center text-xs text-text-muted">
                 يضبط الإعدادات الثلاثة على القيم الموصى بها.
               </p>
             </div>
@@ -145,33 +145,33 @@ export function WhatIfSection({
             >
               <div className="p-6 sm:p-7">
                 <div className="flex items-baseline justify-between gap-4">
-                  <span className="text-sm text-ink-500">
+                  <span className="text-sm text-text-muted">
                     فاتورتك الحالية
                   </span>
                   <span className="flex items-baseline gap-1.5">
-                    <span className="tnum text-2xl font-semibold text-ink-400 line-through decoration-ink-300">
+                    <span className="tnum text-2xl font-semibold text-text-muted line-through decoration-ink-300">
                       {formatSar(currentScenario.billSar)}
                     </span>
-                    <span className="text-xs text-ink-400">{units.sar}</span>
+                    <span className="text-xs text-text-muted">{units.sar}</span>
                   </span>
                 </div>
 
-                <div className="mt-5 border-t border-dashed border-ink-200 pt-5">
-                  <p className="text-sm font-medium text-ink-600">
+                <div className="mt-5 border-t border-dashed border-border pt-5">
+                  <p className="text-sm font-medium text-text-secondary">
                     الفاتورة المتوقعة في هذا السيناريو
                   </p>
                   <p className="mt-2 flex items-baseline gap-2.5">
-                    <span className="text-2xl text-ink-400">≈</span>
+                    <span className="text-2xl text-text-muted">≈</span>
                     <AnimatedNumber
                       value={scenario.billSar}
                       className={cn(
                         "tnum text-6xl font-bold leading-none tracking-tight transition-colors sm:text-7xl",
                         isSaving && "text-brand-700",
                         isCosting && "text-alert",
-                        !isSaving && !isCosting && "text-ink-900"
+                        !isSaving && !isCosting && "text-text-main"
                       )}
                     />
-                    <span className="text-xl text-ink-500">{units.sar}</span>
+                    <span className="text-xl text-text-muted">{units.sar}</span>
                   </p>
 
                   <div className="mt-5 h-3 overflow-hidden rounded-full bg-ink-100">
@@ -213,20 +213,20 @@ export function WhatIfSection({
                           isCosting ? "text-alert" : "text-brand-700"
                         )}
                       />
-                      <span className="text-xs text-ink-500">
+                      <span className="text-xs text-text-muted">
                         {units.sar}
                       </span>
                     </p>
                   </div>
 
-                  <div className="rounded-xl bg-ink-50 p-4">
-                    <p className="text-xs text-ink-500">الاستهلاك المتوقع</p>
+                  <div className="rounded-xl bg-bg-muted p-4">
+                    <p className="text-xs text-text-muted">الاستهلاك المتوقع</p>
                     <p className="mt-1 flex items-baseline gap-1">
                       <AnimatedNumber
                         value={scenario.totalKwh}
-                        className="tnum text-3xl font-bold text-ink-900"
+                        className="tnum text-3xl font-bold text-text-main"
                       />
-                      <span className="text-xs text-ink-500">
+                      <span className="text-xs text-text-muted">
                         {units.kwh}
                       </span>
                     </p>
@@ -242,7 +242,7 @@ export function WhatIfSection({
                   isCosting && "border-alert/15 bg-alert-soft text-alert",
                   !isSaving &&
                     !isCosting &&
-                    "border-ink-100 bg-ink-50/60 text-ink-500"
+                    "border-ink-100 bg-bg-muted/60 text-text-muted"
                 )}
               >
                 {isSaving ? (
@@ -372,14 +372,14 @@ function BreakdownRow({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between gap-3 text-sm">
-        <span className="text-ink-600">{label}</span>
-        <span className="text-ink-500">
-          <span className="tnum font-semibold text-ink-900">
+        <span className="text-text-secondary">{label}</span>
+        <span className="text-text-muted">
+          <span className="tnum font-semibold text-text-main">
             {formatNumber(kwh)}
           </span>{" "}
           <span className="text-xs">{units.kwh}</span>
           {/* bdi يعزل الرقم عن النص العربي حتى لا تنعكس علامة النسبة */}
-          <bdi className="tnum mr-2 text-xs text-ink-400">
+          <bdi className="tnum mr-2 text-xs text-text-muted">
             {Math.round(share)}٪
           </bdi>
         </span>
@@ -428,11 +428,11 @@ function ScenarioCard({
         "rounded-2xl border p-5 text-right transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600",
         active
           ? "border-brand-600 bg-brand-50/60 ring-1 ring-brand-600"
-          : "border-ink-200 bg-white hover:border-ink-300 hover:bg-ink-50/50"
+          : "border-border bg-bg-main hover:border-border hover:bg-bg-muted/50"
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="font-semibold text-ink-900">{title}</span>
+        <span className="font-semibold text-text-main">{title}</span>
         {active ? (
           <span className="inline-flex items-center gap-1 rounded-md bg-brand-700 px-2 py-0.5 text-[10px] font-medium text-white">
             <Check className="h-3 w-3" strokeWidth={3} />
@@ -440,13 +440,13 @@ function ScenarioCard({
           </span>
         ) : null}
       </div>
-      <p className="mt-1 text-xs text-ink-500">{description}</p>
+      <p className="mt-1 text-xs text-text-muted">{description}</p>
 
       <p className="mt-4 flex items-baseline gap-1.5">
-        <span className="tnum text-3xl font-bold tracking-tight text-ink-900">
+        <span className="tnum text-3xl font-bold tracking-tight text-text-main">
           {formatSar(bill)}
         </span>
-        <span className="text-sm text-ink-500">{units.sar}</span>
+        <span className="text-sm text-text-muted">{units.sar}</span>
       </p>
 
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-ink-100">

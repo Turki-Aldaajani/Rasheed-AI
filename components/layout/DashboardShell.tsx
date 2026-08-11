@@ -15,6 +15,7 @@ import { Wordmark } from "@/components/layout/Logo";
 import { cn } from "@/lib/formatting";
 import { household } from "@/data/mock-household";
 import { logout } from "@/app/actions/auth";
+import { ThemeToggle } from "@/components/layout/ThemeToggle";
 
 export type SectionId = "overview" | "analysis" | "plan" | "whatIf" | "water";
 
@@ -40,9 +41,9 @@ export function DashboardShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-dvh bg-ink-50/50">
+    <div className="min-h-dvh bg-bg-muted/50">
       {/* الشريط العلوي */}
-      <header className="sticky top-0 z-30 border-b border-ink-200 bg-white/90 backdrop-blur">
+      <header className="sticky top-0 z-30 border-b border-border bg-bg-main/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
           <Wordmark />
 
@@ -57,7 +58,7 @@ export function DashboardShell({
                   "rounded-lg px-3.5 py-2 text-sm font-medium transition-colors",
                   active === id
                     ? "bg-brand-700 text-white"
-                    : "text-ink-600 hover:bg-ink-100 hover:text-ink-900"
+                    : "text-text-secondary hover:bg-ink-100 hover:text-text-main"
                 )}
               >
                 {label}
@@ -66,12 +67,13 @@ export function DashboardShell({
           </nav>
 
           <div className="flex items-center gap-3">
-            <span className="hidden text-xs text-ink-500 md:inline">
+            <span className="hidden text-xs text-text-muted md:inline">
               {household.city} · {household.houseType}
             </span>
+            <ThemeToggle />
             <button
               onClick={onRestart}
-              className="rounded-lg p-2 text-ink-400 transition-colors hover:bg-ink-100 hover:text-ink-700"
+              className="rounded-lg p-2 text-text-muted transition-colors hover:bg-ink-100 hover:text-ink-700"
               aria-label="البدء من جديد"
               title="البدء من جديد"
             >
@@ -81,7 +83,7 @@ export function DashboardShell({
               <>
                 <Link
                   href="/app/profile"
-                  className="rounded-lg p-2 text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-700"
+                  className="rounded-lg p-2 text-text-muted transition-colors hover:bg-ink-100 hover:text-ink-700"
                   aria-label="ملف المنزل"
                   title="ملف المنزل"
                 >
@@ -106,7 +108,7 @@ export function DashboardShell({
       </main>
 
       {/* تنقل الجوال */}
-      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-ink-200 bg-white/95 backdrop-blur lg:hidden">
+      <nav className="fixed inset-x-0 bottom-0 z-30 border-t border-border bg-bg-main/95 backdrop-blur lg:hidden">
         <div className="mx-auto grid max-w-md grid-cols-5">
           {SECTIONS.map(({ id, label, icon: Icon }) => (
             <button
@@ -115,7 +117,7 @@ export function DashboardShell({
               aria-current={active === id ? "page" : undefined}
               className={cn(
                 "flex flex-col items-center gap-1 px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-2.5 text-[10px] font-medium transition-colors",
-                active === id ? "text-brand-700" : "text-ink-400"
+                active === id ? "text-brand-700" : "text-text-muted"
               )}
             >
               <Icon

@@ -103,15 +103,15 @@ export function AnalyzingScreen({
 
   if (error) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-white px-5 py-12">
+      <div className="flex min-h-dvh items-center justify-center bg-bg-main px-5 py-12">
         <div className="w-full max-w-md text-center">
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-alert-soft">
             <AlertCircle className="h-8 w-8 text-alert" strokeWidth={1.75} />
           </div>
-          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink-900">
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-text-main">
             تعذّر تحليل الفاتورة
           </h1>
-          <p className="mt-3 text-sm leading-relaxed text-ink-600">{error}</p>
+          <p className="mt-3 text-sm leading-relaxed text-text-secondary">{error}</p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             {retryable ? (
               <Button size="lg" onClick={onRetry}>
@@ -128,7 +128,7 @@ export function AnalyzingScreen({
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-white px-5 py-12">
+    <div className="flex min-h-dvh items-center justify-center bg-bg-main px-5 py-12">
       <div className="w-full max-w-md">
         <div className="flex flex-col items-center text-center">
           <div className="relative flex h-20 w-20 items-center justify-center">
@@ -161,10 +161,10 @@ export function AnalyzingScreen({
             <LogoMark className="h-8 w-8 text-brand-700" />
           </div>
 
-          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink-900">
+          <h1 className="mt-6 text-2xl font-semibold tracking-tight text-text-main">
             جاري تحليل فاتورتك...
           </h1>
-          <p className="mt-2 text-sm text-ink-500">
+          <p className="mt-2 text-sm text-text-muted">
             {demo
               ? "نعرض تجربة كاملة ببيانات منزل تجريبية."
               : "نقرأ بيانات الفاتورة عبر Gemini Vision ونربطها بخطة ترشيد مناسبة."}
@@ -188,7 +188,7 @@ export function AnalyzingScreen({
                     "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border transition-colors duration-300",
                     done && "border-brand-600 bg-brand-600 text-white",
                     active && "border-brand-500 text-brand-700",
-                    !done && !active && "border-ink-200 text-ink-300"
+                    !done && !active && "border-border text-ink-300"
                   )}
                 >
                   {done ? (
@@ -203,8 +203,8 @@ export function AnalyzingScreen({
                   className={cn(
                     "text-sm transition-colors duration-300",
                     done && "text-ink-700",
-                    active && "font-medium text-ink-900",
-                    !done && !active && "text-ink-400"
+                    active && "font-medium text-text-main",
+                    !done && !active && "text-text-muted"
                   )}
                 >
                   {label}

@@ -39,17 +39,17 @@ export function WaterSection() {
 
         <Card className="overflow-hidden">
           <div className="grid gap-px bg-ink-200 lg:grid-cols-[1fr_1fr]">
-            <div className="bg-white p-6 sm:p-8">
+            <div className="bg-bg-main p-6 sm:p-8">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-ink-500">
+                  <p className="text-sm font-medium text-text-muted">
                     الاستهلاك هذا الشهر
                   </p>
                   <p className="mt-3 flex items-baseline gap-2.5">
-                    <span className="tnum text-6xl font-bold leading-none tracking-tight text-ink-900">
+                    <span className="tnum text-6xl font-bold leading-none tracking-tight text-text-main">
                       {formatNumber(waterBill.consumptionM3)}
                     </span>
-                    <span className="text-xl text-ink-500">{units.m3}</span>
+                    <span className="text-xl text-text-muted">{units.m3}</span>
                   </p>
                 </div>
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-50">
@@ -62,11 +62,11 @@ export function WaterSection() {
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <p className="flex items-baseline gap-2">
-                  <span className="text-sm text-ink-500">الفاتورة</span>
-                  <span className="tnum text-2xl font-semibold text-ink-900">
+                  <span className="text-sm text-text-muted">الفاتورة</span>
+                  <span className="tnum text-2xl font-semibold text-text-main">
                     {formatSar(waterBill.amountSar)}
                   </span>
-                  <span className="text-sm text-ink-500">{units.sar}</span>
+                  <span className="text-sm text-text-muted">{units.sar}</span>
                 </p>
                 <span className="inline-flex items-center gap-1 rounded-lg bg-alert-soft px-2.5 py-1 text-sm font-semibold text-alert">
                   <ArrowUpRight className="h-3.5 w-3.5" />
@@ -86,8 +86,8 @@ export function WaterSection() {
               </div>
             </div>
 
-            <div className="bg-white p-6 sm:p-8">
-              <p className="text-xs font-medium text-ink-500">
+            <div className="bg-bg-main p-6 sm:p-8">
+              <p className="text-xs font-medium text-text-muted">
                 الاستهلاك خلال 6 أشهر ({units.m3})
               </p>
               <div className="mt-4 flex items-end justify-between gap-2">
@@ -98,7 +98,7 @@ export function WaterSection() {
                       key={item.month}
                       className="flex flex-1 flex-col items-center gap-2"
                     >
-                      <span className="tnum text-[10px] text-ink-400">
+                      <span className="tnum text-[10px] text-text-muted">
                         {item.m3}
                       </span>
                       <div
@@ -109,7 +109,7 @@ export function WaterSection() {
                         }
                         style={{ height: (item.m3 / maxHistory) * 96 }}
                       />
-                      <span className="text-[10px] text-ink-400">
+                      <span className="text-[10px] text-text-muted">
                         {item.month.slice(0, 3)}
                       </span>
                     </div>
@@ -148,19 +148,19 @@ export function WaterSection() {
                   strokeWidth={1.75}
                   aria-hidden
                 />
-                <h3 className="mt-4 font-semibold text-ink-900">
+                <h3 className="mt-4 font-semibold text-text-main">
                   {opportunity.title}
                 </h3>
-                <p className="mt-2 flex-1 text-sm leading-relaxed text-ink-500">
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-text-muted">
                   {opportunity.description}
                 </p>
                 <p className="mt-4 flex items-baseline gap-1.5 border-t border-ink-100 pt-4">
-                  <span className="text-xs text-ink-500">توفير محتمل</span>
-                  <span className="text-ink-400">≈</span>
+                  <span className="text-xs text-text-muted">توفير محتمل</span>
+                  <span className="text-text-muted">≈</span>
                   <span className="tnum text-xl font-bold text-brand-700">
                     {formatSar(opportunity.estimateSar)}
                   </span>
-                  <span className="text-xs text-ink-500">{units.sar}</span>
+                  <span className="text-xs text-text-muted">{units.sar}</span>
                 </p>
               </Card>
             );

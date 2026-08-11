@@ -41,17 +41,17 @@ export function Slider({
       <div className="mb-3 flex items-baseline justify-between gap-3">
         <span className="flex items-center gap-2 text-sm font-medium text-ink-700">
           {icon ? (
-            <span className="text-ink-400" aria-hidden>
+            <span className="text-text-muted" aria-hidden>
               {icon}
             </span>
           ) : null}
           {label}
         </span>
         <span className="flex items-baseline gap-1.5">
-          <span className="tnum text-2xl font-semibold text-ink-900">
+          <span className="tnum text-2xl font-semibold text-text-main">
             {value}
           </span>
-          <span className="text-xs text-ink-500">{unit}</span>
+          <span className="text-xs text-text-muted">{unit}</span>
         </span>
       </div>
 
@@ -79,14 +79,14 @@ export function Slider({
         ) : null}
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-[11px] text-ink-400">
+      <div className="mt-2 flex items-center justify-between text-[11px] text-text-muted">
         <span className="tnum">
           {min} {unit}
         </span>
         <span
           className={cn(
             "transition-colors",
-            changed ? "font-medium text-brand-700" : "text-ink-400"
+            changed ? "font-medium text-brand-700" : "text-text-muted"
           )}
         >
           {changed

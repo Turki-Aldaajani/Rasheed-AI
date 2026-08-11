@@ -38,7 +38,7 @@ export function AnalysisSection({
         <Card className="overflow-hidden">
           <div className="grid gap-px bg-ink-200 lg:grid-cols-[auto_1fr]">
             {/* المخطط + القائمة */}
-            <div className="bg-white p-6 sm:p-8 lg:min-w-[420px]">
+            <div className="bg-bg-main p-6 sm:p-8 lg:min-w-[420px]">
               <DonutChart
                 categories={consumptionBreakdown}
                 activeId={activeId}
@@ -55,7 +55,7 @@ export function AnalysisSection({
                         onMouseEnter={() => setActiveId(category.id)}
                         className={cn(
                           "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-right transition-colors",
-                          isActive ? "bg-ink-50" : "hover:bg-ink-50/60"
+                          isActive ? "bg-bg-muted" : "hover:bg-bg-muted/60"
                         )}
                       >
                         <span
@@ -69,17 +69,17 @@ export function AnalysisSection({
                           className={cn(
                             "flex-1 text-sm",
                             isActive
-                              ? "font-semibold text-ink-900"
-                              : "text-ink-600"
+                              ? "font-semibold text-text-main"
+                              : "text-text-secondary"
                           )}
                         >
                           {category.label}
                         </span>
-                        <span className="tnum text-xs text-ink-400">
+                        <span className="tnum text-xs text-text-muted">
                           {formatNumber(categoryKwh(category.share))}{" "}
                           {units.kwh}
                         </span>
-                        <span className="tnum w-11 text-left text-sm font-semibold text-ink-900">
+                        <span className="tnum w-11 text-left text-sm font-semibold text-text-main">
                           {category.share}٪
                         </span>
                       </button>
@@ -90,7 +90,7 @@ export function AnalysisSection({
             </div>
 
             {/* تفاصيل البند المختار */}
-            <div key={active.id} className="rs-fade bg-white p-6 sm:p-8">
+            <div key={active.id} className="rs-fade bg-bg-main p-6 sm:p-8">
               <div className="flex items-start gap-3">
                 <span
                   className="mt-1.5 h-3 w-3 shrink-0 rounded-sm"
@@ -98,10 +98,10 @@ export function AnalysisSection({
                   aria-hidden
                 />
                 <div>
-                  <h3 className="text-2xl font-semibold tracking-tight text-ink-900">
+                  <h3 className="text-2xl font-semibold tracking-tight text-text-main">
                     {active.label}
                   </h3>
-                  <p className="mt-1 text-sm text-ink-500">{active.headline}</p>
+                  <p className="mt-1 text-sm text-text-muted">{active.headline}</p>
                 </div>
               </div>
 
@@ -128,8 +128,8 @@ export function AnalysisSection({
                     key={fact.label}
                     className="flex items-baseline justify-between gap-4 py-3"
                   >
-                    <dt className="text-sm text-ink-500">{fact.label}</dt>
-                    <dd className="text-sm font-medium text-ink-900">
+                    <dt className="text-sm text-text-muted">{fact.label}</dt>
+                    <dd className="text-sm font-medium text-text-main">
                       {fact.value}
                     </dd>
                   </div>
@@ -158,7 +158,7 @@ export function AnalysisSection({
         </Card>
 
         <EstimateNote className="mt-4">
-          هذه النسب <span className="font-medium text-ink-500">تقديرية</span>{" "}
+          هذه النسب <span className="font-medium text-text-muted">تقديرية</span>{" "}
           ومبنية على بيانات المنزل ({household.residents} أفراد،{" "}
           {household.acUnits} مكيفات، {household.houseType}) ودرجة حرارة{" "}
           {household.city} ({weather.temperatureC}
@@ -172,9 +172,9 @@ export function AnalysisSection({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border border-ink-200 p-4">
-      <p className="text-xs text-ink-500">{label}</p>
-      <p className="tnum mt-1.5 text-2xl font-semibold text-ink-900">{value}</p>
+    <div className="rounded-xl border border-border p-4">
+      <p className="text-xs text-text-muted">{label}</p>
+      <p className="tnum mt-1.5 text-2xl font-semibold text-text-main">{value}</p>
     </div>
   );
 }

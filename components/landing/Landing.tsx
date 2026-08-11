@@ -57,7 +57,7 @@ export function Landing({
   const savingPercent = (saving / currentScenario.billSar) * 100;
 
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="min-h-dvh bg-bg-main">
       <header className="border-b border-ink-100">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4 sm:px-8">
           <Wordmark subtitle="مدربك الذكي لاستهلاك المنزل" />
@@ -69,18 +69,18 @@ export function Landing({
       <section className="border-b border-ink-100 bg-brand-50/40">
         <div className="mx-auto grid max-w-6xl items-center gap-12 px-5 py-14 sm:px-8 sm:py-20 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
           <div className="rs-rise">
-            <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-white px-3 py-1.5 text-xs font-medium text-brand-800">
+            <span className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-bg-main px-3 py-1.5 text-xs font-medium text-brand-800">
               <span className="h-1.5 w-1.5 rounded-full bg-brand-600" />
               للمنازل السعودية
             </span>
 
-            <h1 className="mt-6 text-5xl font-bold leading-[1.15] tracking-tight text-ink-900 sm:text-6xl">
+            <h1 className="mt-6 text-5xl font-bold leading-[1.15] tracking-tight text-text-main sm:text-6xl">
               رشيد
             </h1>
             <p className="mt-3 text-xl font-medium text-brand-800 sm:text-2xl">
               مدربك الذكي لاستهلاك المنزل
             </p>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-ink-600 sm:text-lg">
+            <p className="mt-5 max-w-xl text-base leading-relaxed text-text-secondary sm:text-lg">
               افهم استهلاك منزلك، اكتشف أين تذهب فاتورتك، وشاهد كم يمكنك توفيره
               قبل أن تغيّر أي شيء.
             </p>
@@ -95,33 +95,33 @@ export function Landing({
               </Button>
             </div>
 
-            <div className="mt-9 flex flex-wrap gap-x-8 gap-y-3 border-t border-ink-200/70 pt-6 text-sm">
+            <div className="mt-9 flex flex-wrap gap-x-8 gap-y-3 border-t border-border/70 pt-6 text-sm">
               <div>
-                <span className="tnum text-lg font-semibold text-ink-900">
+                <span className="tnum text-lg font-semibold text-text-main">
                   {formatNumber(electricityBill.consumptionKwh)}
                 </span>{" "}
-                <span className="text-ink-500">{units.kwh} تُحلَّل</span>
+                <span className="text-text-muted">{units.kwh} تُحلَّل</span>
               </div>
               <div>
-                <span className="tnum text-lg font-semibold text-ink-900">
+                <span className="tnum text-lg font-semibold text-text-main">
                   {formatNumber(waterBill.consumptionM3)}
                 </span>{" "}
-                <span className="text-ink-500">{units.m3} مياه</span>
+                <span className="text-text-muted">{units.m3} مياه</span>
               </div>
               <div>
                 <span className="tnum text-lg font-semibold text-brand-700">
                   {formatSar(saving)}
                 </span>{" "}
-                <span className="text-ink-500">{units.sar} توفير محتمل</span>
+                <span className="text-text-muted">{units.sar} توفير محتمل</span>
               </div>
             </div>
           </div>
 
           {/* بطاقة "من الفاتورة إلى التوفير" */}
           <div className="rs-rise [animation-delay:120ms]">
-            <div className="rounded-2xl border border-ink-200 bg-white p-6 shadow-[0_1px_2px_rgb(19_24_22/0.04),0_12px_32px_-12px_rgb(19_24_22/0.12)] sm:p-8">
+            <div className="rounded-2xl border border-border bg-bg-main p-6 shadow-[0_1px_2px_rgb(19_24_22/0.04),0_12px_32px_-12px_rgb(19_24_22/0.12)] sm:p-8">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-medium text-ink-500">
+                <span className="text-xs font-medium text-text-muted">
                   فاتورة {household.city} · {household.houseType}
                 </span>
                 <span className="inline-flex items-center gap-1.5 rounded-lg bg-brand-50 px-2.5 py-1 text-[11px] font-medium text-brand-800">
@@ -131,25 +131,25 @@ export function Landing({
               </div>
 
               <div className="mt-6">
-                <p className="text-sm text-ink-500">فاتورتك الحالية</p>
+                <p className="text-sm text-text-muted">فاتورتك الحالية</p>
                 <p className="mt-1 flex items-baseline gap-2">
-                  <span className="tnum text-5xl font-bold tracking-tight text-ink-900">
+                  <span className="tnum text-5xl font-bold tracking-tight text-text-main">
                     {formatSar(currentScenario.billSar)}
                   </span>
-                  <span className="text-lg text-ink-500">{units.sar}</span>
+                  <span className="text-lg text-text-muted">{units.sar}</span>
                 </p>
                 <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-ink-100">
                   <div className="rs-grow h-full rounded-full bg-ink-300" />
                 </div>
               </div>
 
-              <div className="mt-6 border-t border-dashed border-ink-200 pt-6">
-                <p className="text-sm text-ink-500">مع خطة رشيد</p>
+              <div className="mt-6 border-t border-dashed border-border pt-6">
+                <p className="text-sm text-text-muted">مع خطة رشيد</p>
                 <p className="mt-1 flex items-baseline gap-2">
                   <span className="tnum text-5xl font-bold tracking-tight text-brand-700">
                     {formatSar(planScenario.billSar)}
                   </span>
-                  <span className="text-lg text-ink-500">{units.sar}</span>
+                  <span className="text-lg text-text-muted">{units.sar}</span>
                 </p>
                 <div className="mt-3 h-2.5 overflow-hidden rounded-full bg-ink-100">
                   <div
@@ -187,14 +187,14 @@ export function Landing({
 
       {/* ——— الركائز ——— */}
       <section className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-        <div className="grid gap-px overflow-hidden rounded-2xl border border-ink-200 bg-ink-200 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-px overflow-hidden rounded-2xl border border-border bg-ink-200 sm:grid-cols-2 lg:grid-cols-4">
           {PILLARS.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="bg-white p-6">
+            <div key={title} className="bg-bg-main p-6">
               <Icon className="h-5 w-5 text-brand-700" strokeWidth={1.75} />
-              <h3 className="mt-4 text-base font-semibold text-ink-900">
+              <h3 className="mt-4 text-base font-semibold text-text-main">
                 {title}
               </h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-ink-500">
+              <p className="mt-1.5 text-sm leading-relaxed text-text-muted">
                 {body}
               </p>
             </div>
@@ -203,12 +203,12 @@ export function Landing({
       </section>
 
       {/* ——— كيف يعمل ——— */}
-      <section className="border-t border-ink-100 bg-ink-50/60">
+      <section className="border-t border-ink-100 bg-bg-muted/60">
         <div className="mx-auto max-w-6xl px-5 py-16 sm:px-8">
-          <h2 className="text-2xl font-semibold tracking-tight text-ink-900">
+          <h2 className="text-2xl font-semibold tracking-tight text-text-main">
             كيف يعمل رشيد؟
           </h2>
-          <p className="mt-2 max-w-2xl text-ink-500">
+          <p className="mt-2 max-w-2xl text-text-muted">
             أربع خطوات من الفاتورة إلى قرار واضح — دون أن تغيّر شيئًا في منزلك
             قبل أن ترى أثره.
           </p>
@@ -220,10 +220,10 @@ export function Landing({
                   <span className="tnum text-sm font-semibold text-brand-700">
                     0{index + 1}
                   </span>
-                  <Icon className="h-4 w-4 text-ink-400" strokeWidth={1.75} />
+                  <Icon className="h-4 w-4 text-text-muted" strokeWidth={1.75} />
                 </div>
-                <h3 className="mt-3 font-semibold text-ink-900">{title}</h3>
-                <p className="mt-1 text-sm leading-relaxed text-ink-500">
+                <h3 className="mt-3 font-semibold text-text-main">{title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-text-muted">
                   {body}
                 </p>
               </li>
