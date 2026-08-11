@@ -23,6 +23,7 @@ import type { SimulationInput } from "@/lib/simulation";
 import type { HouseholdProfile } from "@/lib/household";
 import { getPersonalizedRecommendations } from "@/lib/personalization";
 import type { ExtractedInvoice } from "@/types/extracted-invoice";
+import { saveBillFromExtraction } from "@/lib/billService";
 
 type Stage = "landing" | "upload" | "analyzing" | "dashboard";
 
@@ -52,6 +53,7 @@ export function AppShell({
   const [extractedInvoice, setExtractedInvoice] =
     useState<ExtractedInvoice | null>(null);
   const [analysisKey, setAnalysisKey] = useState(0);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const personalizedRecommendations = getPersonalizedRecommendations(profile, baselineRecommendations);
 
@@ -71,6 +73,7 @@ export function AppShell({
     setInvoiceFile(null);
     setUseDemo(false);
     setExtractedInvoice(null);
+    setSaveError(null);
     if (onExit) {
       onExit();
     } else {
@@ -78,14 +81,23 @@ export function AppShell({
     }
   }, [onExit]);
 
-  const handleAnalysisDone = useCallback((outcome: AnalysisOutcome) => {
+  const handleAnalysisDone = useCallback(async (outcome: AnalysisOutcome) => {
     if (outcome.mode === "extracted") {
       setExtractedInvoice(outcome.data);
+
+      // Persist to Supabase when the user is authenticated and has a household.
+      if (isAuthenticated && profile?.id) {
+        const result = await saveBillFromExtraction(outcome.data, profile.id);
+        if (!result.success) {
+          // Surface the real error — do NOT silently swallow it.
+          setSaveError(result.error);
+        }
+      }
     } else {
       setExtractedInvoice(null);
     }
     setStage("dashboard");
-  }, []);
+  }, [isAuthenticated, profile]);
 
   if (stage === "landing") {
     return (
@@ -148,6 +160,11 @@ export function AppShell({
         onRestart={restart}
         isAuthenticated={isAuthenticated}
       >
+        {saveError ? (
+          <div role="alert" className="mx-4 mt-4 rounded-xl border border-alert/40 bg-alert-soft px-4 py-3 text-sm text-alert">
+            <strong>تعذّر حفظ الفاتورة:</strong> {saveError}
+          </div>
+        ) : null}
         <div key={section} className="rs-fade">
           {section === "overview" ? <Overview onNavigate={setSection} /> : null}
           {section === "analysis" ? (
