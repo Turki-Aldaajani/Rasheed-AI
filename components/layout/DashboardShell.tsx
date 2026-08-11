@@ -7,10 +7,12 @@ import {
   SlidersHorizontal,
   Droplets,
   RotateCcw,
+  LogOut,
 } from "lucide-react";
 import { Wordmark } from "@/components/layout/Logo";
 import { cn } from "@/lib/formatting";
 import { household } from "@/data/mock-household";
+import { logout } from "@/app/actions/auth";
 
 export type SectionId = "overview" | "analysis" | "plan" | "whatIf" | "water";
 
@@ -26,11 +28,13 @@ export function DashboardShell({
   active,
   onNavigate,
   onRestart,
+  isAuthenticated = false,
   children,
 }: {
   active: SectionId;
   onNavigate: (id: SectionId) => void;
   onRestart: () => void;
+  isAuthenticated?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -71,6 +75,16 @@ export function DashboardShell({
             >
               <RotateCcw className="h-4 w-4" />
             </button>
+            {isAuthenticated && (
+              <button
+                onClick={() => logout()}
+                className="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                aria-label="تسجيل الخروج"
+                title="تسجيل الخروج"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
           </div>
         </div>
       </header>
