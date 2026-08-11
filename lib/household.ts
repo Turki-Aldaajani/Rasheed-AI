@@ -37,11 +37,22 @@ export async function getHouseholdProfile(): Promise<HouseholdProfile | null> {
     .limit(1)
     .maybeSingle();
 
-  if (error || !data) {
+  if (!error && data) {
+    return data as HouseholdProfile;
+  }
+
+  // Auto-create a default household for new authenticated user
+  const { data: created, error: insertError } = await supabase
+    .from('households')
+    .insert({ user_id: user.id })
+    .select('id, residents, home_area_m2, ac_units, ac_type, water_heater_type, city, region, house_type')
+    .single();
+
+  if (insertError || !created) {
     return null;
   }
 
-  return data as HouseholdProfile;
+  return created as HouseholdProfile;
 }
 
 /**
