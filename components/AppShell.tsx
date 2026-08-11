@@ -20,10 +20,11 @@ import { WhatIfSection } from "@/components/simulator/WhatIfSection";
 import { WaterSection } from "@/components/water/WaterSection";
 import { recommendedSettings, simulationDefaults, recommendations as baselineRecommendations } from "@/data/mock-analysis";
 import type { SimulationInput } from "@/lib/simulation";
-import { getHouseholdProfile, type HouseholdProfile } from "@/lib/household";
+import type { HouseholdProfile } from "@/lib/household";
 import { getPersonalizedRecommendations } from "@/lib/personalization";
 import type { ExtractedInvoice } from "@/types/extracted-invoice";
 import { saveBillFromExtraction } from "@/lib/billService";
+import { getHouseholdProfileAction } from "@/app/actions/household";
 
 type Stage = "landing" | "upload" | "analyzing" | "dashboard";
 
@@ -90,7 +91,7 @@ export function AppShell({
         let householdId = profile?.id;
         if (!householdId) {
           try {
-            const currentProfile = await getHouseholdProfile();
+            const currentProfile = await getHouseholdProfileAction();
             householdId = currentProfile?.id;
           } catch (err) {
             console.error("Error retrieving household profile:", err);

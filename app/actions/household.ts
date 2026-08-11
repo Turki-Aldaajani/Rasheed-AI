@@ -1,7 +1,17 @@
 'use server';
 
-import { saveHouseholdProfile, HouseholdProfileUpdate, ACType, WaterHeaterType } from '@/lib/household';
+import { getHouseholdProfile, saveHouseholdProfile, HouseholdProfileUpdate, ACType, WaterHeaterType } from '@/lib/household';
 import { revalidatePath } from 'next/cache';
+
+/**
+ * Server Action wrapper for getHouseholdProfile — needed because that
+ * function uses next/headers (via lib/supabase/server.ts), which can only
+ * run in a Server Component/Action/Route Handler, never imported directly
+ * into "use client" code like AppShell.tsx.
+ */
+export async function getHouseholdProfileAction() {
+  return getHouseholdProfile();
+}
 
 export async function updateHouseholdProfile(formData: FormData) {
   try {
