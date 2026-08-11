@@ -7,7 +7,7 @@ import { DonutChart, TONE_COLORS } from "@/components/analysis/DonutChart";
 import type { SectionId } from "@/components/layout/DashboardShell";
 import { consumptionBreakdown } from "@/data/mock-analysis";
 import type { ConsumptionCategory } from "@/data/mock-analysis";
-import { electricityBill } from "@/data/mock-bill";
+import { useBillData } from "@/components/BillDataProvider";
 import { household, weather } from "@/data/mock-household";
 import { formatNumber, formatSar, units, cn } from "@/lib/formatting";
 import { energyCostSar } from "@/lib/simulation";
@@ -17,6 +17,7 @@ export function AnalysisSection({
 }: {
   onNavigate: (id: SectionId) => void;
 }) {
+  const { electricityBill } = useBillData();
   const [activeId, setActiveId] =
     useState<ConsumptionCategory["id"]>("cooling");
   const active =

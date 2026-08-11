@@ -4,8 +4,9 @@
 
 > **🔗 الموقع المباشر:** [rasheed-ai-795.netlify.app](https://rasheed-ai-795.netlify.app/)
 
-> **نموذج تجربة أولي (Experience Prototype)** — الواجهة كاملة وتفاعلية، والحسابات محلية
-> وحتمية. لم تُربط بعد بـ Gemini Vision أو واجهات الطقس والتعرفة الرسمية.
+> **نموذج تجربة أولي (Experience Prototype)** — الواجهة كاملة وتفاعلية.
+> قراءة الفاتورة مربوطة بـ **Gemini Vision** عبر `/api/extract-invoice`.
+> لم تُربط بعد بواجهات الطقس والتعرفة الرسمية.
 
 ## الفكرة
 
@@ -53,6 +54,7 @@
 git clone https://github.com/Turki-Aldaajani/Rasheed-AI.git
 cd Rasheed-AI
 npm install
+cp .env.example .env.local   # أضف GEMINI_API_KEY وبيانات Supabase
 npm run dev          # → http://localhost:3000
 ```
 
@@ -91,6 +93,11 @@ data/                    البيانات التجريبية (منزل، فات�
 lib/
   simulation.ts          محرك المحاكاة الحتمي
   formatting.ts          تنسيق الأرقام والوحدات بالعربية
+  gemini/                استخراج الفاتورة عبر Gemini Vision
+  env.ts                 إعداد البيئة والأسرار
+prompts/
+  invoice-extraction.md  Prompt موثّق لقراءة الفواتير (قابل للتعديل)
+app/api/extract-invoice/  نقطة API لاستخراج بيانات الفاتورة
 ```
 
 ### قاعدتان في البنية
@@ -117,11 +124,11 @@ lib/
 
 Next.js 15 · React 19 · TypeScript · Tailwind CSS v4 · Lucide · مخططات SVG مخصّصة
 
-بلا خادم خلفي، بلا قاعدة بيانات، بلا مصادقة، وبلا أي اتصال خارجي.
+Supabase (قاعدة بيانات + مصادقة). يتطلب `GEMINI_API_KEY` لتحليل الفواتير الحقيقية.
 
 ## الخطوات القادمة
 
-- ربط قراءة الفاتورة بـ **Gemini Vision**
+- ~~ربط قراءة الفاتورة بـ **Gemini Vision**~~ ✅
 - استدعاء الوظائف (**Function Calling**) لجلب الطقس والتعرفة الرسمية
 - استبدال `lib/simulation.ts` بمحرك الحساب الحقيقي
 - محاكي تفصيلي لاستهلاك المياه

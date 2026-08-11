@@ -2,7 +2,8 @@
 
 import { ArrowUpRight, Droplet, Gauge, ShowerHead, TrendingDown } from "lucide-react";
 import { Card, SectionTitle, EstimateNote, Chip } from "@/components/ui/Primitives";
-import { waterBill, waterHistory } from "@/data/mock-bill";
+import { useBillData } from "@/components/BillDataProvider";
+import { waterHistory } from "@/data/mock-bill";
 import { waterOpportunities } from "@/data/mock-analysis";
 import { household } from "@/data/mock-household";
 import {
@@ -16,6 +17,7 @@ import {
 const ICONS = [ShowerHead, Gauge, TrendingDown];
 
 export function WaterSection() {
+  const { waterBill } = useBillData();
   const m3Change = changePercent(
     waterBill.consumptionM3,
     waterBill.previousConsumptionM3

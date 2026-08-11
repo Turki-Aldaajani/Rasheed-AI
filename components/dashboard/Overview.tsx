@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -11,16 +10,14 @@ import {
   Thermometer,
   Wind,
   Droplets,
-  Sparkles,
 } from "lucide-react";
 import { Card, Button, EstimateNote, Chip } from "@/components/ui/Primitives";
 import type { SectionId } from "@/components/layout/DashboardShell";
-import { electricityBill, electricityHistory, waterBill } from "@/data/mock-bill";
+import { useBillData } from "@/components/BillDataProvider";
+import { electricityHistory } from "@/data/mock-bill";
 import { household, weather } from "@/data/mock-household";
 import { consumptionBreakdown } from "@/data/mock-analysis";
 import { currentScenario, planScenario } from "@/lib/simulation";
-import { supabase } from "@/lib/supabaseClient";
-import type { BillMetadata } from "@/lib/billService";
 import {
   changePercent,
   formatNumber,
@@ -30,49 +27,14 @@ import {
 } from "@/lib/formatting";
 
 export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }) {
-  const [latestBill, setLatestBill] = useState<BillMetadata | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchLatestBill() {
-      try {
-        const { data, error } = await supabase
-          .from('bills')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(1);
-
-        if (!error && data && data.length > 0) {
-          setLatestBill(data[0]);
-        }
-      } catch (err) {
-        console.error("Error fetching latest bill:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchLatestBill();
-  }, []);
-
-  const displayBill = latestBill ? {
-    amountSar: 385.00,
-    previousAmountSar: electricityBill.previousAmountSar,
-    consumptionKwh: 1420,
-    previousConsumptionKwh: electricityBill.previousConsumptionKwh,
-    periodLabel: `مستخرج من ${latestBill.file_name}`,
-    isUploaded: true
-  } : {
-    ...electricityBill,
-    isUploaded: false
-  };
-
+  const { electricityBill, waterBill, source } = useBillData();
   const billChange = changePercent(
-    displayBill.amountSar,
-    displayBill.previousAmountSar
+    electricityBill.amountSar,
+    electricityBill.previousAmountSar
   );
   const kwhChange = changePercent(
-    displayBill.consumptionKwh,
-    displayBill.previousConsumptionKwh
+    electricityBill.consumptionKwh,
+    electricityBill.previousConsumptionKwh
   );
   const saving = currentScenario.billSar - planScenario.billSar;
   const savingPercent = (saving / currentScenario.billSar) * 100;
@@ -97,36 +59,18 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
                 <span className="text-sm font-medium text-ink-500">
                   فاتورة الكهرباء الحالية
                 </span>
-                {displayBill.isUploaded ? (
-                  <span className="inline-flex items-center gap-1 rounded-lg bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 border border-brand-200">
-                    <Sparkles className="h-3 w-3" />
-                    محللة بالذكاء الاصطناعي
-                  </span>
-                ) : (
-                  <span className="text-xs text-ink-400">
-                    · {displayBill.periodLabel}
-                  </span>
-                )}
+                <span className="text-xs text-ink-400">
+                  · {electricityBill.periodLabel}
+                </span>
+                {source === "extracted" ? (
+                  <Chip className="text-xs">مقروءة من فاتورتك</Chip>
+                ) : null}
               </div>
-
-              {displayBill.isUploaded && latestBill && (
-                <p className="mt-2 text-xs text-brand-700">
-                  تم استخراج البيانات من الملف المرفوع:{" "}
-                  <a
-                    href={latestBill.storage_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline font-semibold hover:text-brand-800"
-                  >
-                    {latestBill.file_name}
-                  </a>
-                </p>
-              )}
 
               <div className="mt-4 flex flex-wrap items-end gap-x-4 gap-y-2">
                 <p className="flex items-baseline gap-2.5">
                   <span className="tnum text-6xl font-bold leading-none tracking-tight text-ink-900 sm:text-7xl">
-                    {formatSar(displayBill.amountSar)}
+                    {formatSar(electricityBill.amountSar)}
                   </span>
                   <span className="text-xl text-ink-500">{units.sar}</span>
                 </p>
@@ -138,7 +82,7 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
 
               <p className="mt-3 flex items-baseline gap-2 text-lg text-ink-600">
                 <span className="tnum font-semibold text-ink-800">
-                  {formatNumber(displayBill.consumptionKwh)}
+                  {formatNumber(electricityBill.consumptionKwh)}
                 </span>
                 <span className="text-sm text-ink-500">{units.kwh}</span>
                 <span className="text-sm text-ink-400">
@@ -150,19 +94,19 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
               <div className="mt-7 space-y-3">
                 <ComparisonBar
                   label="الفترة السابقة"
-                  amount={displayBill.previousAmountSar}
-                  kwh={displayBill.previousConsumptionKwh}
+                  amount={electricityBill.previousAmountSar}
+                  kwh={electricityBill.previousConsumptionKwh}
                   width={
-                    (displayBill.previousAmountSar /
-                      displayBill.amountSar) *
+                    (electricityBill.previousAmountSar /
+                      electricityBill.amountSar) *
                     100
                   }
                   tone="muted"
                 />
                 <ComparisonBar
                   label="الفترة الحالية"
-                  amount={displayBill.amountSar}
-                  kwh={displayBill.consumptionKwh}
+                  amount={electricityBill.amountSar}
+                  kwh={electricityBill.consumptionKwh}
                   width={100}
                   tone="alert"
                 />
