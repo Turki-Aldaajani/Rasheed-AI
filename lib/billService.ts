@@ -1,17 +1,54 @@
-// D:\Rasheed-AI\lib\billService.ts - Invoice Processing & Compression Service
+// lib/billService.ts — Invoice Processing & Compression Service
 
 import { defaultStorageProvider } from './storage';
-import { supabase } from './supabaseClient';
+import { supabase as defaultSupabase } from './supabaseClient';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-export interface BillMetadata {
-  id?: string;
-  user_id: string;
-  file_name: string;
-  file_size: number;
-  file_type: string;
-  storage_url: string;
-  created_at?: string;
+// ---------------------------------------------------------------------------
+// Types — aligned with G1 schema (supabase/migrations/00001_create_schema.sql)
+// ---------------------------------------------------------------------------
+
+/**
+ * Data provided by the caller when uploading a bill.
+ * Fields map to the columns that actually exist in the `bills` table.
+ */
+export interface BillInput {
+  /** 'electricity' | 'water' — maps to bill_type (NOT NULL, CHECK) */
+  bill_type: 'electricity' | 'water';
+  /** Bill amount in SAR — maps to amount_sar (NOT NULL) */
+  amount_sar: number;
+  /** Optional human-readable billing period label, e.g. "Jan 2025" */
+  period_label?: string;
+  /** ISO date string for the start of the billing period */
+  period_start?: string;
+  /** ISO date string for the end of the billing period */
+  period_end?: string;
+  /** Meter number as printed on the invoice */
+  meter_number?: string;
+  /** Electricity consumption in kWh — saved to bill_readings, NOT to bills */
+  consumption_kwh?: number;
 }
+
+/**
+ * The row as stored in the `bills` table after a successful insert.
+ * Matches the actual G1 schema columns exactly.
+ */
+export interface BillRecord {
+  id: string;
+  household_id: string;
+  bill_type: 'electricity' | 'water';
+  amount_sar: number;
+  period_label?: string | null;
+  period_start?: string | null;
+  period_end?: string | null;
+  meter_number?: string | null;
+  invoice_image_url?: string | null;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------------
+// File validation & compression (unchanged logic, kept as-is)
+// ---------------------------------------------------------------------------
 
 /**
  * Validates the upload file size and type.
@@ -112,87 +149,160 @@ export async function compressImage(
       img.onerror = () => resolve(file);
       img.src = event.target?.result as string;
     };
-    
+
     reader.onerror = () => resolve(file);
     reader.readAsDataURL(file);
   });
 }
 
+// ---------------------------------------------------------------------------
+// Household resolution
+// ---------------------------------------------------------------------------
+
 /**
- * Handles the end-to-end flow of validating, compressing, uploading, and saving metadata.
+ * Returns the household_id for the given user.
+ * If the user has no household yet, creates a default one and returns its id.
+ *
+ * Throws on any unexpected DB error so that callers know immediately instead
+ * of silently receiving null/undefined.
+ */
+export async function getOrCreateHousehold(
+  userId: string,
+  client: SupabaseClient = defaultSupabase
+): Promise<string> {
+  // 1. Try to find an existing household (deterministically the oldest one)
+  const { data: existing, error: selectError } = await client
+    .from('households')
+    .select('id')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (selectError) {
+    throw new Error(`فشل جلب بيانات المنزل: ${selectError.message}`);
+  }
+
+  if (existing) {
+    return existing.id as string;
+  }
+
+  // 2. No household found — create a default one
+  const { data: created, error: insertError } = await client
+    .from('households')
+    .insert({ user_id: userId })
+    .select('id')
+    .single();
+
+  if (insertError || !created) {
+    throw new Error(`فشل إنشاء منزل افتراضي للمستخدم: ${insertError?.message ?? 'unknown error'}`);
+  }
+
+  return created.id as string;
+}
+
+// ---------------------------------------------------------------------------
+// Main upload function
+// ---------------------------------------------------------------------------
+
+/**
+ * End-to-end flow: validate → compress → upload to Storage → save to DB.
+ *
+ * DB writes are aligned with the G1 schema:
+ *   • `bills`       ← household_id, bill_type, amount_sar, period_*, meter_number, invoice_image_url
+ *   • `bill_readings` ← bill_id, reading_type, consumption  (if consumption_kwh provided)
+ *
+ * Note: file_name, file_size, file_type are NOT written to the DB (no such
+ * columns in the real schema). Errors are thrown/propagated — no silent
+ * graceful-fallback that would hide real failures.
  */
 export async function processAndUploadBill(
   file: File,
   userId: string,
+  billInput: BillInput,
   onProgress?: (
     stage: 'validating' | 'compressing' | 'uploading' | 'saving' | 'done',
     progress: number
-  ) => void
-): Promise<{ success: boolean; data?: BillMetadata; error?: string }> {
-  try {
-    // 1. Validation
-    onProgress?.('validating', 15);
-    const validation = validateBillFile(file);
-    if (!validation.isValid) {
-      return { success: false, error: validation.errorMessage };
-    }
-
-    // 2. Compression (for images only)
-    let fileToUpload: File | Blob = file;
-    if (file.type.startsWith('image/')) {
-      onProgress?.('compressing', 45);
-      fileToUpload = await compressImage(file);
-    }
-
-    // 3. Upload to Storage Provider
-    onProgress?.('uploading', 75);
-    const fileExtension = file.name.split('.').pop() || '';
-    
-    // Generate unique filename
-    const uniqueId =
-      typeof crypto !== 'undefined' && crypto.randomUUID
-        ? crypto.randomUUID()
-        : Math.random().toString(36).substring(2, 15);
-    const storagePath = `${userId}/${uniqueId}_${Date.now()}.${fileExtension}`;
-
-    // Upload to 'bills' bucket
-    const uploadedPath = await defaultStorageProvider.uploadFile(
-      'bills',
-      storagePath,
-      fileToUpload,
-      { contentType: fileToUpload.type }
-    );
-
-    // Get public URL
-    const publicUrl = defaultStorageProvider.getPublicUrl('bills', uploadedPath);
-
-    // 4. Save metadata to database table 'bills'
-    onProgress?.('saving', 90);
-    const billData: BillMetadata = {
-      user_id: userId,
-      file_name: file.name,
-      file_size: fileToUpload.size,
-      file_type: file.type,
-      storage_url: publicUrl,
-    };
-
-    const { data, error: dbError } = await supabase
-      .from('bills')
-      .insert(billData)
-      .select()
-      .single();
-
-    if (dbError) {
-      throw new Error(`فشل حفظ بيانات الفاتورة في قاعدة البيانات: ${dbError.message}`);
-    }
-
-    onProgress?.('done', 100);
-    return { success: true, data: data as BillMetadata };
-  } catch (err: any) {
-    console.error('Error processing and uploading bill:', err);
-    return {
-      success: false,
-      error: err.message || 'حدث خطأ غير متوقع أثناء معالجة ورفع الفاتورة.',
-    };
+  ) => void,
+  client: SupabaseClient = defaultSupabase
+): Promise<{ success: boolean; data?: BillRecord; error?: string }> {
+  // 1. Validation
+  onProgress?.('validating', 15);
+  const validation = validateBillFile(file);
+  if (!validation.isValid) {
+    return { success: false, error: validation.errorMessage };
   }
+
+  // 2. Compression (for images only)
+  let fileToUpload: File | Blob = file;
+  if (file.type.startsWith('image/')) {
+    onProgress?.('compressing', 45);
+    fileToUpload = await compressImage(file);
+  }
+
+  // 3. Upload to Storage
+  onProgress?.('uploading', 75);
+  const fileExtension = file.name.split('.').pop() || '';
+  const uniqueId =
+    typeof crypto !== 'undefined' && crypto.randomUUID
+      ? crypto.randomUUID()
+      : Math.random().toString(36).substring(2, 15);
+  const storagePath = `${userId}/${uniqueId}_${Date.now()}.${fileExtension}`;
+
+  const uploadedPath = await defaultStorageProvider.uploadFile(
+    'bills',
+    storagePath,
+    fileToUpload,
+    { contentType: fileToUpload.type }
+  );
+
+  const invoiceImageUrl = defaultStorageProvider.getPublicUrl('bills', uploadedPath);
+
+  // 4. Resolve household — ensures household_id exists before writing to bills
+  onProgress?.('saving', 85);
+  const householdId = await getOrCreateHousehold(userId, client);
+
+  // 5. Insert into `bills` with the correct G1 schema columns
+  const billRow: Record<string, unknown> = {
+    household_id: householdId,
+    bill_type: billInput.bill_type,
+    amount_sar: billInput.amount_sar,
+    invoice_image_url: invoiceImageUrl,
+  };
+
+  if (billInput.period_label !== undefined) billRow.period_label = billInput.period_label;
+  if (billInput.period_start !== undefined) billRow.period_start = billInput.period_start;
+  if (billInput.period_end !== undefined) billRow.period_end = billInput.period_end;
+  if (billInput.meter_number !== undefined) billRow.meter_number = billInput.meter_number;
+
+  const { data: billData, error: billError } = await client
+    .from('bills')
+    .insert(billRow)
+    .select()
+    .single();
+
+  if (billError) {
+    throw new Error(`فشل حفظ بيانات الفاتورة في قاعدة البيانات: ${billError.message}`);
+  }
+
+  // 6. Insert consumption reading into `bill_readings` (separate table)
+  if (billInput.consumption_kwh !== undefined && billInput.consumption_kwh !== null) {
+    const readingType =
+      billInput.bill_type === 'water' ? 'water_m3' : 'electricity_kwh';
+
+    const { error: readingError } = await client
+      .from('bill_readings')
+      .insert({
+        bill_id: billData.id,
+        reading_type: readingType,
+        consumption: billInput.consumption_kwh,
+      });
+
+    if (readingError) {
+      throw new Error(`فشل حفظ بيانات الاستهلاك في قاعدة البيانات: ${readingError.message}`);
+    }
+  }
+
+  onProgress?.('done', 100);
+  return { success: true, data: billData as BillRecord };
 }
