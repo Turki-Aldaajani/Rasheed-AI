@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Landing } from "@/components/landing/Landing";
 import { UploadScreen } from "@/components/invoice/UploadScreen";
 import { AnalyzingScreen } from "@/components/analysis/AnalyzingScreen";
@@ -22,8 +23,17 @@ type Stage = "landing" | "upload" | "analyzing" | "dashboard";
  * حالة التطبيق كاملة في مكان واحد — بلا مكتبة إدارة حالة.
  * الرحلة: الواجهة ← رفع الفاتورة ← التحليل ← لوحة النتائج.
  */
-export function AppShell() {
-  const [stage, setStage] = useState<Stage>("landing");
+export function AppShell({
+  initialStage = "landing",
+  onExit,
+  isAuthenticated = false,
+}: {
+  initialStage?: Stage;
+  onExit?: () => void;
+  isAuthenticated?: boolean;
+}) {
+  const router = useRouter();
+  const [stage, setStage] = useState<Stage>(initialStage);
   const [section, setSection] = useState<SectionId>("overview");
   const [settings, setSettings] = useState<SimulationInput>({
     ...simulationDefaults,
@@ -42,13 +52,17 @@ export function AppShell() {
   const restart = useCallback(() => {
     setSettings({ ...simulationDefaults });
     setSection("overview");
-    setStage("landing");
-  }, []);
+    if (onExit) {
+      onExit();
+    } else {
+      setStage("landing");
+    }
+  }, [onExit]);
 
   if (stage === "landing") {
     return (
       <Landing
-        onStart={() => setStage("upload")}
+        onStart={() => router.push("/app")}
         onDemo={() => setStage("analyzing")}
       />
     );
@@ -58,7 +72,10 @@ export function AppShell() {
     return (
       <UploadScreen
         onAnalyze={() => setStage("analyzing")}
-        onBack={() => setStage("landing")}
+        onBack={() => {
+          if (onExit) onExit();
+          else setStage("landing");
+        }}
       />
     );
   }
@@ -72,6 +89,7 @@ export function AppShell() {
       active={section}
       onNavigate={setSection}
       onRestart={restart}
+      isAuthenticated={isAuthenticated}
     >
       <div key={section} className="rs-fade">
         {section === "overview" ? <Overview onNavigate={setSection} /> : null}
