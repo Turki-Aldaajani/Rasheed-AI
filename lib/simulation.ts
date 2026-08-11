@@ -2,19 +2,21 @@
  * محرك المحاكاة المحلي — نموذج حتمي (deterministic) للبروتوتايب.
  *
  * الغرض منه توضيح فكرة المنتج: "كيف يؤثر تغيير سلوكي على فاتورتي؟"
- * وليس تمثيل خوارزمية الفوترة الحقيقية.
  *
- * كل الحسابات محلية وبدون أي اتصال خارجي. عند الربط بالمحرك الحقيقي
- * لاحقًا، يكفي استبدال محتوى هذا الملف دون تعديل واجهات العرض.
+ * كل الحسابات محلية وبدون أي اتصال خارجي.
+ *
+ * ملاحظة (A12): الحسابات المالية تستند الآن إلى التعرفة الرسمية عبر
+ * lib/tariffCalculator.ts (A13) بدلاً من التعرفة التقديرية في mock-bill.
  */
 
-import { electricityBill, tariff } from "@/data/mock-bill";
+import { electricityBill } from "@/data/mock-bill";
 import {
   consumptionBreakdown,
   recommendations,
   recommendedSettings,
   simulationDefaults,
 } from "@/data/mock-analysis";
+import { calcElectricityBill } from "@/lib/tariffCalculator";
 
 export type SimulationInput = {
   /** ساعات تشغيل المكيفات يوميًا */
@@ -61,14 +63,21 @@ export const baseline = {
     (shareOf("refrigeration") + shareOf("lighting") + shareOf("other")),
 };
 
-/** فاتورة الكهرباء المقدّرة مقابل استهلاك معيّن */
+/**
+ * فاتورة الكهرباء الرسمية مقابل استهلاك معيّن.
+ * تستخدم التعرفة المتدرجة الرسمية (A13 — tariffCalculator) بدلاً من
+ * السعر التقديري الثابت.
+ */
 export function billFromKwh(kwh: number): number {
-  return kwh * tariff.sarPerKwh + tariff.fixedFeeSar;
+  return calcElectricityBill(kwh).totalSar;
 }
 
-/** قيمة الطاقة وحدها بالريال، بدون الرسوم الثابتة */
+/**
+ * قيمة الطاقة وحدها بالريال (بدون الرسوم الثابتة).
+ * مبنية على التعرفة الرسمية المتدرجة.
+ */
 export function energyCostSar(kwh: number): number {
-  return kwh * tariff.sarPerKwh;
+  return calcElectricityBill(kwh).consumptionSar;
 }
 
 function coolingKwhFor(acHours: number, acTemp: number): number {
