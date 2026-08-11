@@ -183,7 +183,10 @@ export async function processAndUploadBill(
       .single();
 
     if (dbError) {
-      throw new Error(`فشل حفظ بيانات الفاتورة في قاعدة البيانات: ${dbError.message}`);
+      // نسجّل تفاصيل الخطأ التقنية للتشخيص، لكن نعرض للمستخدم رسالة عربية
+      // بخطوة تالية واضحة بدل نص الخطأ الخام القادم من Supabase.
+      console.error('Supabase insert error while saving bill metadata:', dbError);
+      throw new Error('تعذّر حفظ بيانات الفاتورة في قاعدة البيانات. حاول رفعها مرة أخرى بعد قليل.');
     }
 
     onProgress?.('done', 100);
@@ -192,7 +195,9 @@ export async function processAndUploadBill(
     console.error('Error processing and uploading bill:', err);
     return {
       success: false,
-      error: err.message || 'حدث خطأ غير متوقع أثناء معالجة ورفع الفاتورة.',
+      error:
+        err.message ||
+        'حدث خطأ غير متوقع أثناء معالجة الفاتورة. تحقق من اتصالك بالإنترنت وحاول مرة أخرى.',
     };
   }
 }

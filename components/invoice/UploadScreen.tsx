@@ -120,7 +120,9 @@ export function UploadScreen({
   };
 
   const handleUpload = async () => {
-    if (!file) return;
+    // uploadState guards against a double click firing this twice before the
+    // first "validating" state update re-renders and hides this button.
+    if (!file || uploadState !== 'idle') return;
 
     // Temporary/Mock user ID for prototype demonstration
     const mockUserId = 'usr_987654321_invoice';
@@ -136,7 +138,10 @@ export function UploadScreen({
 
     if (!uploadResult.success) {
       setUploadState('error');
-      setError(uploadResult.error || 'حدث خطأ أثناء معالجة الفاتورة.');
+      setError(
+        uploadResult.error ||
+          'تعذّر رفع الفاتورة. تحقق من اتصالك بالإنترنت ثم اضغط «إزالة» وأعد اختيار الملف للمحاولة مرة أخرى.'
+      );
       return;
     }
 
