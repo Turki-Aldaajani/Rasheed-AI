@@ -6,9 +6,13 @@ export async function updateSession(request: NextRequest) {
     request,
   });
 
+  // createServerClient() throws synchronously on an empty URL, and this runs on
+  // every request via middleware.ts's matcher — without a fallback, the whole
+  // site 500s on any route when .env.local is missing. See lib/supabaseClient.ts
+  // for the same fix applied to the non-SSR client.
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co',
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-anon-key',
     {
       cookies: {
         getAll() {
