@@ -4,6 +4,7 @@ import { defaultStorageProvider } from './storage';
 import { supabase as defaultSupabase } from './supabaseClient';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { ExtractedInvoice } from '@/types/extracted-invoice';
+import { validateExtractedInvoice } from '@/lib/gemini/validate-invoice';
 
 // ---------------------------------------------------------------------------
 // Types — aligned with G1 schema (supabase/migrations/00001_create_schema.sql)
@@ -332,16 +333,35 @@ export async function saveBillFromExtraction(
   householdId: string
 ): Promise<{ success: true; data: SavedBillIds } | { success: false; error: string }> {
   try {
+    // 0. Validate extraction data against schema contract before saving
+    const validation = validateExtractedInvoice(extracted);
+    if (!validation.isValid) {
+      return {
+        success: false,
+        error: `بيانات الفاتورة المستخرجة غير مطابقة للمخطط الموحّد: ${validation.errors.join(' ')}`,
+      };
+    }
+    const validatedData = validation.data;
+
     // 1. Insert into `bills` using G1 schema columns.
+    const billInsertRow: Record<string, unknown> = {
+      household_id: householdId,
+      bill_type: validatedData.serviceType,   // 'electricity' | 'water'
+      amount_sar: validatedData.amountSar,
+      period_label: validatedData.periodLabel,
+      meter_number: validatedData.accountNumber,
+    };
+
+    if (validatedData.periodStart) {
+      billInsertRow.period_start = validatedData.periodStart;
+    }
+    if (validatedData.periodEnd) {
+      billInsertRow.period_end = validatedData.periodEnd;
+    }
+
     const { data: billRow, error: billError } = await defaultSupabase
       .from('bills')
-      .insert({
-        household_id: householdId,
-        bill_type: extracted.serviceType,   // 'electricity' | 'water'
-        amount_sar: extracted.amountSar,
-        period_label: extracted.periodLabel,
-        meter_number: extracted.accountNumber,
-      })
+      .insert(billInsertRow)
       .select('id')
       .single();
 
@@ -354,14 +374,14 @@ export async function saveBillFromExtraction(
 
     // 2. Insert consumption into `bill_readings`.
     const readingType =
-      extracted.serviceType === 'electricity' ? 'electricity_kwh' : 'water_m3';
+      validatedData.serviceType === 'electricity' ? 'electricity_kwh' : 'water_m3';
 
     const { data: readingRow, error: readingError } = await defaultSupabase
       .from('bill_readings')
       .insert({
         bill_id: billRow.id,
         reading_type: readingType,
-        consumption: extracted.consumption,
+        consumption: validatedData.consumption,
       })
       .select('id')
       .single();
