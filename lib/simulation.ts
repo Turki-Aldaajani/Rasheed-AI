@@ -120,11 +120,11 @@ export const planScenario = simulate(recommendedSettings);
  * يُحسب تتابعيًا: كل بند يُطبَّق فوق البنود السابقة، حتى لا يتضاعف
  * احتساب التوفير ويكون مجموع البنود مساويًا لتوفير الخطة الكامل.
  */
-export function planBreakdown(): { id: string; savingSar: number }[] {
+export function planBreakdown(recs = recommendations): { id: string; savingSar: number }[] {
   let settings: SimulationInput = { ...baseline.input };
   let previousBill = simulate(settings).billSar;
 
-  return recommendations.map((rec) => {
+  return recs.map((rec) => {
     settings = { ...settings, [rec.id]: recommendedSettings[rec.id] };
     const bill = simulate(settings).billSar;
     const savingSar = previousBill - bill;
@@ -134,6 +134,6 @@ export function planBreakdown(): { id: string; savingSar: number }[] {
 }
 
 /** التوفير المقدّر لبند واحد من بنود الخطة */
-export function savingForRecommendation(id: string): number {
-  return planBreakdown().find((item) => item.id === id)?.savingSar ?? 0;
+export function savingForRecommendation(id: string, recs = recommendations): number {
+  return planBreakdown(recs).find((item) => item.id === id)?.savingSar ?? 0;
 }

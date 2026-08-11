@@ -3,7 +3,7 @@
 import { ArrowLeft, ArrowLeftRight, Lightbulb } from "lucide-react";
 import { Card, SectionTitle, Button, EstimateNote } from "@/components/ui/Primitives";
 import type { SectionId } from "@/components/layout/DashboardShell";
-import { recommendations } from "@/data/mock-analysis";
+import { Recommendation } from "@/data/mock-analysis";
 import {
   currentScenario,
   planScenario,
@@ -13,11 +13,13 @@ import { formatSar, units } from "@/lib/formatting";
 
 export function PlanSection({
   onApplyPlan,
+  recs,
 }: {
   onNavigate: (id: SectionId) => void;
   onApplyPlan: () => void;
+  recs: Recommendation[];
 }) {
-  const breakdown = planBreakdown();
+  const breakdown = planBreakdown(recs);
   const totalSaving = currentScenario.billSar - planScenario.billSar;
   const maxSaving = Math.max(...breakdown.map((b) => b.savingSar));
 
@@ -30,7 +32,7 @@ export function PlanSection({
         />
 
         <ol className="space-y-4">
-          {recommendations.map((rec, index) => {
+          {recs.map((rec, index) => {
             const saving =
               breakdown.find((b) => b.id === rec.id)?.savingSar ?? 0;
             return (

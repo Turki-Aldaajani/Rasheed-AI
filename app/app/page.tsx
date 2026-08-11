@@ -1,16 +1,10 @@
-"use client";
+import { getHouseholdProfile } from "@/lib/household";
+import { AppClientWrapper } from "./AppClientWrapper";
 
-import { AppShell } from "@/components/AppShell";
-import { useRouter } from "next/navigation";
-
-export default function ProtectedApp() {
-  const router = useRouter();
+export default async function ProtectedApp() {
+  const profile = await getHouseholdProfile();
   
   return (
-    <AppShell 
-      initialStage="upload" 
-      onExit={() => router.push("/")}
-      isAuthenticated={true}
-    />
+    <AppClientWrapper profile={profile} />
   );
 }
