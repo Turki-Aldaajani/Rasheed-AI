@@ -122,7 +122,7 @@ export async function compressImage(
  * Simulates checking if the uploaded image/PDF is readable and contains layout structure of an invoice.
  * Files whose names contain 'cat', 'dog', 'selfie', 'unreadable' or 'blurred' will fail.
  */
-export async function verifyInvoiceContent(file: File): Promise<{ isValidInvoice: boolean; reason?: string }> {
+export async function verifyInvoiceContent(file: File): Promise<{ isInvoice: boolean; reason?: string }> {
   // Simulate processing latency
   await new Promise((resolve) => setTimeout(resolve, 1500));
 
@@ -132,12 +132,12 @@ export async function verifyInvoiceContent(file: File): Promise<{ isValidInvoice
 
   if (hasInvalidKeyword) {
     return {
-      isValidInvoice: false,
-      reason: 'الصورة غير واضحة أو ليست فاتورة، يرجى التصوير في إضاءة أفضل والتأكد من وضوح الأرقام.',
+      isInvoice: false,
+      reason: 'الصورة غير واضحة أو ليست فاتورة، يرجى التصوير في إضاءة أفضل أو الاعتماد على الإدخال اليدوي.',
     };
   }
 
-  return { isValidInvoice: true };
+  return { isInvoice: true };
 }
 
 /**
@@ -193,7 +193,7 @@ export async function processAndUploadBill(
     // 1b. Content Verification (Readability and structure)
     onProgress?.('validating', 25);
     const verification = await verifyInvoiceContent(file);
-    if (!verification.isValidInvoice) {
+    if (!verification.isInvoice) {
       await logInvoiceFailure(
         userId,
         file.name,

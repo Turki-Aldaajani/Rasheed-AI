@@ -487,7 +487,7 @@ export function UploadScreen({
                   className="bg-white hover:bg-ink-100 border border-ink-300 text-ink-900 flex gap-2 items-center"
                   onClick={() => setShowManualForm(true)}
                 >
-                  أدخل البيانات يدوياً كبديل
+                  الإدخال اليدوي
                 </Button>
               </div>
             </div>
