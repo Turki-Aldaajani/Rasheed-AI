@@ -1,7 +1,8 @@
-// D:\Rasheed-AI\lib\billService.ts - Invoice Processing & Compression Service
+// lib/billService.ts - Invoice Processing & Compression Service
 
 import { defaultStorageProvider } from './storage';
 import { supabase } from './supabaseClient';
+import type { ExtractedInvoice } from '@/types/extracted-invoice';
 
 export interface BillMetadata {
   id?: string;
@@ -193,6 +194,81 @@ export async function processAndUploadBill(
     return {
       success: false,
       error: err.message || 'حدث خطأ غير متوقع أثناء معالجة ورفع الفاتورة.',
+    };
+  }
+}
+
+// ============================================================================
+// saveBillFromExtraction — saves Gemini Vision extraction result to Supabase
+// using the actual G1 schema columns.
+// ============================================================================
+
+export interface SavedBillIds {
+  billId: string;
+  readingId: string;
+}
+
+/**
+ * Persists an ExtractedInvoice to the `bills` and `bill_readings` tables
+ * using the correct G1 schema columns.
+ *
+ * @param extracted - Structured data returned by Gemini Vision extraction.
+ * @param householdId - UUID of the household that owns this bill (from households.id).
+ * @returns { success: true, data: SavedBillIds } on success,
+ *          { success: false, error: string } on any DB failure.
+ */
+export async function saveBillFromExtraction(
+  extracted: ExtractedInvoice,
+  householdId: string
+): Promise<{ success: true; data: SavedBillIds } | { success: false; error: string }> {
+  try {
+    // 1. Insert into `bills` using G1 schema columns.
+    const { data: billRow, error: billError } = await supabase
+      .from('bills')
+      .insert({
+        household_id: householdId,
+        bill_type: extracted.serviceType,   // 'electricity' | 'water'
+        amount_sar: extracted.amountSar,
+        period_label: extracted.periodLabel,
+        meter_number: extracted.accountNumber,
+      })
+      .select('id')
+      .single();
+
+    if (billError || !billRow) {
+      return {
+        success: false,
+        error: `فشل حفظ الفاتورة في قاعدة البيانات: ${billError?.message ?? 'خطأ غير معروف'}`,
+      };
+    }
+
+    // 2. Insert consumption into `bill_readings`.
+    const readingType =
+      extracted.serviceType === 'electricity' ? 'electricity_kwh' : 'water_m3';
+
+    const { data: readingRow, error: readingError } = await supabase
+      .from('bill_readings')
+      .insert({
+        bill_id: billRow.id,
+        reading_type: readingType,
+        consumption: extracted.consumption,
+      })
+      .select('id')
+      .single();
+
+    if (readingError || !readingRow) {
+      return {
+        success: false,
+        error: `فشل حفظ بيانات الاستهلاك: ${readingError?.message ?? 'خطأ غير معروف'}`,
+      };
+    }
+
+    return { success: true, data: { billId: billRow.id, readingId: readingRow.id } };
+  } catch (err: any) {
+    console.error('saveBillFromExtraction unexpected error:', err);
+    return {
+      success: false,
+      error: err?.message ?? 'حدث خطأ غير متوقع أثناء حفظ الفاتورة.',
     };
   }
 }
