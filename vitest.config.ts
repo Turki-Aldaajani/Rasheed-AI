@@ -6,6 +6,8 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     globals: true,
+    // *.spec.ts under tests/ are Playwright E2E specs, not Vitest unit tests.
+    exclude: ['**/node_modules/**', '**/*.spec.ts'],
   },
   resolve: {
     alias: {

@@ -14,3 +14,8 @@ tsconfig.tsbuildinfo
 
 # Supabase local development
 .supabase/
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
