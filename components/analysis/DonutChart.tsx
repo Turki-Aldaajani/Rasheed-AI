@@ -88,14 +88,14 @@ export function DonutChart({
       <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center text-center">
         <span
           key={active.id}
-          className="rs-fade tnum text-4xl font-semibold text-ink-900"
+          className="rs-fade tnum text-4xl font-semibold text-text-main"
         >
           {formatNumber(active.share)}
-          <span className="text-xl text-ink-400">٪</span>
+          <span className="text-xl text-text-muted">٪</span>
         </span>
         <span
           key={`${active.id}-label`}
-          className="rs-fade mt-1 max-w-[120px] text-xs leading-snug text-ink-500"
+          className="rs-fade mt-1 max-w-[120px] text-xs leading-snug text-text-muted"
         >
           {active.label}
         </span>

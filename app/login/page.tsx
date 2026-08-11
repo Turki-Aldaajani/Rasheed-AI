@@ -34,7 +34,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 dir="ltr"
-                className="rounded-xl border border-ink-300 bg-white px-4 py-2.5 text-ink-900 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
+                className="rounded-xl border border-border bg-bg-main px-4 py-2.5 text-text-main focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
               />
             </div>
 
@@ -48,7 +48,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 dir="ltr"
-                className="rounded-xl border border-ink-300 bg-white px-4 py-2.5 text-ink-900 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
+                className="rounded-xl border border-border bg-bg-main px-4 py-2.5 text-text-main focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
               />
             </div>
 
@@ -61,7 +61,7 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-ink-600">
+          <p className="mt-6 text-center text-sm text-text-secondary">
             ليس لديك حساب؟{" "}
             <Link href="/signup" className="font-semibold text-brand-700 hover:underline">
               أنشئ حساباً جديداً

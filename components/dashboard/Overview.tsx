@@ -54,12 +54,12 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
       <section className="rs-rise">
         <Card className="overflow-hidden">
           <div className="grid gap-px bg-ink-200 lg:grid-cols-[1.15fr_1fr]">
-            <div className="bg-white p-6 sm:p-8">
+            <div className="bg-bg-main p-6 sm:p-8">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm font-medium text-ink-500">
+                <span className="text-sm font-medium text-text-muted">
                   فاتورة الكهرباء الحالية
                 </span>
-                <span className="text-xs text-ink-400">
+                <span className="text-xs text-text-muted">
                   · {electricityBill.periodLabel}
                 </span>
                 {source === "extracted" ? (
@@ -69,10 +69,10 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
 
               <div className="mt-4 flex flex-wrap items-end gap-x-4 gap-y-2">
                 <p className="flex items-baseline gap-2.5">
-                  <span className="tnum text-6xl font-bold leading-none tracking-tight text-ink-900 sm:text-7xl">
+                  <span className="tnum text-6xl font-bold leading-none tracking-tight text-text-main sm:text-7xl">
                     {formatSar(electricityBill.amountSar)}
                   </span>
-                  <span className="text-xl text-ink-500">{units.sar}</span>
+                  <span className="text-xl text-text-muted">{units.sar}</span>
                 </p>
                 <span className="inline-flex items-center gap-1 rounded-lg bg-alert-soft px-2.5 py-1.5 text-sm font-semibold text-alert">
                   <ArrowUpRight className="h-4 w-4" />
@@ -80,12 +80,12 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
                 </span>
               </div>
 
-              <p className="mt-3 flex items-baseline gap-2 text-lg text-ink-600">
-                <span className="tnum font-semibold text-ink-800">
+              <p className="mt-3 flex items-baseline gap-2 text-lg text-text-secondary">
+                <span className="tnum font-semibold text-text-main">
                   {formatNumber(electricityBill.consumptionKwh)}
                 </span>
-                <span className="text-sm text-ink-500">{units.kwh}</span>
-                <span className="text-sm text-ink-400">
+                <span className="text-sm text-text-muted">{units.kwh}</span>
+                <span className="text-sm text-text-muted">
                   · مقارنة بالفترة السابقة
                 </span>
               </p>
@@ -123,21 +123,21 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
             </div>
 
             {/* الطقس + أكبر مصدر */}
-            <div className="bg-white p-6 sm:p-8">
+            <div className="bg-bg-main p-6 sm:p-8">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium text-ink-500">
+                  <p className="text-sm font-medium text-text-muted">
                     الطقس في {household.city}
                   </p>
                   <p className="mt-2 flex items-baseline gap-1.5">
-                    <span className="tnum text-4xl font-bold text-ink-900">
+                    <span className="tnum text-4xl font-bold text-text-main">
                       {formatNumber(weather.temperatureC)}
                     </span>
-                    <span className="text-lg text-ink-500">
+                    <span className="text-lg text-text-muted">
                       {units.celsiusShort}
                     </span>
                   </p>
-                  <p className="mt-1 text-sm text-ink-500">
+                  <p className="mt-1 text-sm text-text-muted">
                     {weather.condition} · رطوبة {weather.humidity}٪
                   </p>
                 </div>
@@ -149,13 +149,13 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
                 </div>
               </div>
 
-              <div className="mt-7 rounded-xl border border-ink-200 p-5">
-                <p className="text-xs font-medium text-ink-500">
+              <div className="mt-7 rounded-xl border border-border p-5">
+                <p className="text-xs font-medium text-text-muted">
                   أكبر مصدر محتمل للاستهلاك
                 </p>
                 <div className="mt-2.5 flex items-center gap-3">
                   <Wind className="h-5 w-5 text-brand-700" strokeWidth={1.75} />
-                  <span className="text-lg font-semibold text-ink-900">
+                  <span className="text-lg font-semibold text-text-main">
                     {topCategory.label}
                   </span>
                 </div>
@@ -165,8 +165,8 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
                     style={{ width: `${topCategory.share}%` }}
                   />
                 </div>
-                <p className="mt-2.5 text-sm text-ink-600">
-                  <span className="tnum font-semibold text-ink-900">
+                <p className="mt-2.5 text-sm text-text-secondary">
+                  <span className="tnum font-semibold text-text-main">
                     {topCategory.share}٪
                   </span>{" "}
                   من الاستهلاك المقدّر — {household.acUnits} وحدات تكييف في جو{" "}
@@ -176,7 +176,7 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
 
               {/* الاتجاه خلال 6 أشهر */}
               <div className="mt-6">
-                <p className="text-xs font-medium text-ink-500">
+                <p className="text-xs font-medium text-text-muted">
                   الاستهلاك خلال 6 أشهر ({units.kwh})
                 </p>
                 <div className="mt-3 flex items-end justify-between gap-1.5 sm:gap-2">
@@ -196,7 +196,7 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
                           style={{ height: (item.kwh / maxHistory) * 76 }}
                           title={`${item.month}: ${formatNumber(item.kwh)}`}
                         />
-                        <span className="text-[10px] text-ink-400">
+                        <span className="text-[10px] text-text-muted">
                           {item.month.slice(0, 3)}
                         </span>
                       </div>
@@ -213,11 +213,11 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
       <section className="rs-rise [animation-delay:100ms]">
         <Card className="overflow-hidden border-brand-200">
           <div className="grid gap-px bg-brand-100 md:grid-cols-[1fr_auto]">
-            <div className="bg-white p-6 sm:p-8">
-              <h2 className="text-xl font-semibold tracking-tight text-ink-900 sm:text-2xl">
+            <div className="bg-bg-main p-6 sm:p-8">
+              <h2 className="text-xl font-semibold tracking-tight text-text-main sm:text-2xl">
                 فرصة التوفير
               </h2>
-              <p className="mt-1.5 text-sm text-ink-500">
+              <p className="mt-1.5 text-sm text-text-muted">
                 هذا ما قد تصبح عليه فاتورتك إذا طبّقت خطة رشيد.
               </p>
 
@@ -311,10 +311,10 @@ function ComparisonBar({
   return (
     <div>
       <div className="mb-1.5 flex items-baseline justify-between text-sm">
-        <span className="text-ink-500">{label}</span>
+        <span className="text-text-muted">{label}</span>
         <span className="text-ink-700">
           <span className="tnum font-semibold">{formatSar(amount)}</span>{" "}
-          <span className="text-xs text-ink-400">
+          <span className="text-xs text-text-muted">
             {units.sar} · {formatNumber(kwh)} {units.kwh}
           </span>
         </span>
@@ -349,19 +349,19 @@ function SavingRow({
   return (
     <div>
       <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-sm text-ink-600">{label}</span>
+        <span className="text-sm text-text-secondary">{label}</span>
         <span className="flex items-baseline gap-1.5">
-          {approximate ? <span className="text-ink-400">≈</span> : null}
+          {approximate ? <span className="text-text-muted">≈</span> : null}
           <span
             className={
               tone === "brand"
                 ? "tnum text-3xl font-bold text-brand-700"
-                : "tnum text-3xl font-bold text-ink-900"
+                : "tnum text-3xl font-bold text-text-main"
             }
           >
             {formatSar(amount)}
           </span>
-          <span className="text-sm text-ink-500">{units.sar}</span>
+          <span className="text-sm text-text-muted">{units.sar}</span>
         </span>
       </div>
       <div className="h-3 overflow-hidden rounded-full bg-ink-100">
@@ -394,13 +394,13 @@ function QuickCard({
   return (
     <button
       onClick={onClick}
-      className="group flex h-full flex-col rounded-2xl border border-ink-200 bg-white p-5 text-right transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+      className="group flex h-full flex-col rounded-2xl border border-border bg-bg-main p-5 text-right transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
     >
-      <span className="flex items-center gap-2 font-semibold text-ink-900">
+      <span className="flex items-center gap-2 font-semibold text-text-main">
         {icon ? <span className="text-brand-700">{icon}</span> : null}
         {title}
       </span>
-      <span className="mt-2 flex-1 text-sm leading-relaxed text-ink-500">
+      <span className="mt-2 flex-1 text-sm leading-relaxed text-text-muted">
         {body}
       </span>
       <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-700">

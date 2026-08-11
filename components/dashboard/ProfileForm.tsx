@@ -33,10 +33,10 @@ export function ProfileForm({ initialProfile }: { initialProfile: HouseholdProfi
   }
 
   return (
-    <form action={handleSubmit} className="mx-auto max-w-xl space-y-6 rounded-2xl bg-white p-6 shadow-sm border border-ink-200">
+    <form action={handleSubmit} className="mx-auto max-w-xl space-y-6 rounded-2xl bg-bg-main p-6 shadow-sm border border-border">
       <div className="space-y-1">
-        <h2 className="text-xl font-semibold text-ink-900">بيانات المنزل</h2>
-        <p className="text-sm text-ink-500">
+        <h2 className="text-xl font-semibold text-text-main">بيانات المنزل</h2>
+        <p className="text-sm text-text-muted">
           تساعدنا هذه البيانات في تقديم توصيات مخصصة لمنزلك وتحديد فرص التوفير.
         </p>
       </div>
@@ -64,7 +64,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: HouseholdProfi
             id="residents"
             min="1"
             defaultValue={initialProfile?.residents ?? ''}
-            className="block w-full rounded-lg border border-ink-300 px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="block w-full rounded-lg border border-border px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             placeholder="مثال: 5"
           />
         </div>
@@ -80,7 +80,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: HouseholdProfi
             min="1"
             step="0.01"
             defaultValue={initialProfile?.home_area_m2 ?? ''}
-            className="block w-full rounded-lg border border-ink-300 px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="block w-full rounded-lg border border-border px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             placeholder="مثال: 250"
           />
         </div>
@@ -95,7 +95,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: HouseholdProfi
             id="ac_units"
             min="0"
             defaultValue={initialProfile?.ac_units ?? ''}
-            className="block w-full rounded-lg border border-ink-300 px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+            className="block w-full rounded-lg border border-border px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
             placeholder="مثال: 4"
           />
         </div>
@@ -108,7 +108,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: HouseholdProfi
             name="ac_type"
             id="ac_type"
             defaultValue={initialProfile?.ac_type ?? ''}
-            className="block w-full rounded-lg border border-ink-300 px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 bg-white"
+            className="block w-full rounded-lg border border-border px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 bg-bg-main"
           >
             <option value="">اختر...</option>
             <option value="split">سبليت (جداري)</option>
@@ -126,7 +126,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: HouseholdProfi
             name="water_heater_type"
             id="water_heater_type"
             defaultValue={initialProfile?.water_heater_type ?? ''}
-            className="block w-full rounded-lg border border-ink-300 px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 bg-white"
+            className="block w-full rounded-lg border border-border px-4 py-2.5 text-sm transition-colors focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500 bg-bg-main"
           >
             <option value="">اختر...</option>
             <option value="electric">كهربائي</option>
@@ -141,7 +141,7 @@ export function ProfileForm({ initialProfile }: { initialProfile: HouseholdProfi
         <button
           type="button"
           onClick={() => router.push('/app')}
-          className="rounded-lg px-4 py-2 text-sm font-medium text-ink-600 hover:bg-ink-50 transition-colors"
+          className="rounded-lg px-4 py-2 text-sm font-medium text-text-secondary hover:bg-bg-muted transition-colors"
         >
           رجوع
         </button>

@@ -17,7 +17,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md text-center">
           <Card className="p-8">
             <h2 className="text-2xl font-semibold text-brand-700 mb-4">نجاح!</h2>
-            <p className="text-ink-600 leading-relaxed mb-6">{state.message}</p>
+            <p className="text-text-secondary leading-relaxed mb-6">{state.message}</p>
             <Link href="/login">
               <Button className="w-full">العودة لتسجيل الدخول</Button>
             </Link>
@@ -49,7 +49,7 @@ export default function SignupPage() {
                 name="displayName"
                 type="text"
                 required
-                className="rounded-xl border border-ink-300 bg-white px-4 py-2.5 text-ink-900 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
+                className="rounded-xl border border-border bg-bg-main px-4 py-2.5 text-text-main focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
               />
             </div>
 
@@ -63,7 +63,7 @@ export default function SignupPage() {
                 type="email"
                 required
                 dir="ltr"
-                className="rounded-xl border border-ink-300 bg-white px-4 py-2.5 text-ink-900 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
+                className="rounded-xl border border-border bg-bg-main px-4 py-2.5 text-text-main focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
               />
             </div>
 
@@ -77,7 +77,7 @@ export default function SignupPage() {
                 type="password"
                 required
                 dir="ltr"
-                className="rounded-xl border border-ink-300 bg-white px-4 py-2.5 text-ink-900 focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
+                className="rounded-xl border border-border bg-bg-main px-4 py-2.5 text-text-main focus:border-brand-600 focus:outline-none focus:ring-1 focus:ring-brand-600"
               />
             </div>
 
@@ -90,7 +90,7 @@ export default function SignupPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-sm text-ink-600">
+          <p className="mt-6 text-center text-sm text-text-secondary">
             لديك حساب بالفعل؟{" "}
             <Link href="/login" className="font-semibold text-brand-700 hover:underline">
               سجل دخولك

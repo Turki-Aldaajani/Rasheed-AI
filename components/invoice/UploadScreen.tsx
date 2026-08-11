@@ -77,7 +77,7 @@ export function UploadScreen({
   };
 
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="min-h-dvh bg-bg-main">
       <header className="border-b border-ink-100">
         <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4 sm:px-8">
           <Wordmark />
@@ -90,10 +90,10 @@ export function UploadScreen({
 
       <main className="mx-auto max-w-3xl px-5 py-12 sm:px-8 sm:py-16">
         <div className="rs-rise">
-          <h1 className="text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-text-main sm:text-4xl">
             حلّل فاتورتك
           </h1>
-          <p className="mt-3 text-base leading-relaxed text-ink-600">
+          <p className="mt-3 text-base leading-relaxed text-text-secondary">
             ارفع فاتورة الكهرباء أو المياه وسيساعدك رشيد على فهم استهلاك منزلك.
           </p>
         </div>
@@ -104,7 +104,7 @@ export function UploadScreen({
               "rs-rise mt-8 rounded-2xl border-2 border-dashed p-10 text-center transition-colors sm:p-14",
               dragging
                 ? "border-brand-500 bg-brand-50"
-                : "border-ink-300 bg-ink-50/50 hover:border-ink-400"
+                : "border-border bg-bg-muted/50 hover:border-ink-400"
             )}
             onDragOver={(e) => {
               e.preventDefault();
@@ -118,16 +118,16 @@ export function UploadScreen({
               if (file) accept(file);
             }}
           >
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-ink-200 bg-white">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-border bg-bg-main">
               <UploadCloud
                 className="h-6 w-6 text-brand-700"
                 strokeWidth={1.75}
               />
             </div>
-            <p className="mt-5 text-lg font-semibold text-ink-900">
+            <p className="mt-5 text-lg font-semibold text-text-main">
               اسحب الفاتورة هنا
             </p>
-            <p className="mt-1 text-sm text-ink-500">أو اختر ملفًا من جهازك</p>
+            <p className="mt-1 text-sm text-text-muted">أو اختر ملفًا من جهازك</p>
 
             <Button
               variant="secondary"
@@ -137,7 +137,7 @@ export function UploadScreen({
               اختيار ملف
             </Button>
 
-            <p className="mt-6 text-xs tracking-wide text-ink-400">
+            <p className="mt-6 text-xs tracking-wide text-text-muted">
               PDF / JPG / PNG · حتى 15 ميجابايت
             </p>
 
@@ -153,16 +153,16 @@ export function UploadScreen({
             />
           </div>
         ) : (
-          <div className="rs-rise mt-8 overflow-hidden rounded-2xl border border-ink-200">
+          <div className="rs-rise mt-8 overflow-hidden rounded-2xl border border-border">
             <div className="flex items-center gap-4 border-b border-ink-100 p-5">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50">
                 <FileText className="h-5 w-5 text-brand-700" strokeWidth={1.75} />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-ink-900">
+                <p className="truncate font-medium text-text-main">
                   {selected.name}
                 </p>
-                <p className="mt-0.5 text-xs text-ink-500">
+                <p className="mt-0.5 text-xs text-text-muted">
                   {selected.sizeLabel} · جاهز للتحليل
                 </p>
               </div>
@@ -177,18 +177,18 @@ export function UploadScreen({
               </Button>
             </div>
 
-            <div className="flex items-center justify-center bg-ink-50 p-6">
+            <div className="flex items-center justify-center bg-bg-muted p-6">
               {selected.previewUrl ? (
                 /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={selected.previewUrl}
                   alt="معاينة الفاتورة"
-                  className="max-h-72 w-auto rounded-lg border border-ink-200 bg-white object-contain shadow-sm"
+                  className="max-h-72 w-auto rounded-lg border border-border bg-bg-main object-contain shadow-sm"
                 />
               ) : (
                 <div className="flex flex-col items-center gap-3 py-8 text-center">
                   <FileText className="h-9 w-9 text-ink-300" strokeWidth={1.5} />
-                  <p className="text-sm text-ink-500">
+                  <p className="text-sm text-text-muted">
                     ملف PDF — ستُقرأ بياناته أثناء التحليل
                   </p>
                 </div>
