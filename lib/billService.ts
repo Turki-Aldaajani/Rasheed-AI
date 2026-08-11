@@ -119,6 +119,59 @@ export async function compressImage(
 }
 
 /**
+ * Simulates checking if the uploaded image/PDF is readable and contains layout structure of an invoice.
+ * Files whose names contain 'cat', 'dog', 'selfie', 'unreadable' or 'blurred' will fail.
+ */
+export async function verifyInvoiceContent(file: File): Promise<{ isValidInvoice: boolean; reason?: string }> {
+  // Simulate processing latency
+  await new Promise((resolve) => setTimeout(resolve, 1500));
+
+  const name = file.name.toLowerCase();
+  const invalidKeywords = ['cat', 'dog', 'selfie', 'photo', 'picture', 'unreadable', 'blurred', 'test-fail'];
+  const hasInvalidKeyword = invalidKeywords.some(keyword => name.includes(keyword));
+
+  if (hasInvalidKeyword) {
+    return {
+      isValidInvoice: false,
+      reason: 'الصورة غير واضحة أو ليست فاتورة، يرجى التصوير في إضاءة أفضل والتأكد من وضوح الأرقام.',
+    };
+  }
+
+  return { isValidInvoice: true };
+}
+
+/**
+ * Logs a failed invoice processing attempt to Supabase (and falls back to system logger).
+ */
+export async function logInvoiceFailure(
+  userId: string,
+  fileName: string,
+  fileSize: number,
+  fileType: string,
+  reason: string
+): Promise<void> {
+  try {
+    const { error } = await supabase
+      .from('bill_failures')
+      .insert({
+        user_id: userId,
+        file_name: fileName,
+        file_size: fileSize,
+        file_type: fileType,
+        failure_reason: reason,
+        created_at: new Date().toISOString()
+      });
+
+    if (error) {
+      console.warn('Supabase log warning (table bill_failures may not exist yet):', error.message);
+    }
+    console.log(`[Invoice Failure Logged] User: ${userId} | File: ${fileName} | Reason: ${reason}`);
+  } catch (err) {
+    console.error('Error logging invoice failure:', err);
+  }
+}
+
+/**
  * Handles the end-to-end flow of validating, compressing, uploading, and saving metadata.
  */
 export async function processAndUploadBill(
@@ -131,10 +184,24 @@ export async function processAndUploadBill(
 ): Promise<{ success: boolean; data?: BillMetadata; error?: string }> {
   try {
     // 1. Validation
-    onProgress?.('validating', 15);
+    onProgress?.('validating', 10);
     const validation = validateBillFile(file);
     if (!validation.isValid) {
       return { success: false, error: validation.errorMessage };
+    }
+
+    // 1b. Content Verification (Readability and structure)
+    onProgress?.('validating', 25);
+    const verification = await verifyInvoiceContent(file);
+    if (!verification.isValidInvoice) {
+      await logInvoiceFailure(
+        userId,
+        file.name,
+        file.size,
+        file.type,
+        verification.reason || 'الملف غير صالح كفاتورة مقروءة'
+      );
+      return { success: false, error: verification.reason };
     }
 
     // 2. Compression (for images only)

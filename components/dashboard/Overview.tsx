@@ -32,6 +32,7 @@ import {
 export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }) {
   const [latestBill, setLatestBill] = useState<BillMetadata | null>(null);
   const [loading, setLoading] = useState(true);
+  const [manualBillData, setManualBillData] = useState<any>(null);
 
   useEffect(() => {
     async function fetchLatestBill() {
@@ -54,16 +55,35 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
     fetchLatestBill();
   }, []);
 
-  const displayBill = latestBill ? {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('rasheed_manual_bill');
+      if (stored) {
+        setManualBillData(JSON.parse(stored));
+      }
+    }
+  }, [latestBill]);
+
+  const displayBill = manualBillData ? {
+    amountSar: manualBillData.amount,
+    previousAmountSar: electricityBill.previousAmountSar,
+    consumptionKwh: manualBillData.kwh,
+    previousConsumptionKwh: electricityBill.previousConsumptionKwh,
+    periodLabel: `إدخال يدوي - ${manualBillData.period}`,
+    isUploaded: true,
+    isManual: true
+  } : latestBill ? {
     amountSar: 385.00,
     previousAmountSar: electricityBill.previousAmountSar,
     consumptionKwh: 1420,
     previousConsumptionKwh: electricityBill.previousConsumptionKwh,
     periodLabel: `مستخرج من ${latestBill.file_name}`,
-    isUploaded: true
+    isUploaded: true,
+    isManual: false
   } : {
     ...electricityBill,
-    isUploaded: false
+    isUploaded: false,
+    isManual: false
   };
 
   const billChange = changePercent(
@@ -100,7 +120,7 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
                 {displayBill.isUploaded ? (
                   <span className="inline-flex items-center gap-1 rounded-lg bg-brand-50 px-2 py-0.5 text-xs font-semibold text-brand-700 border border-brand-200">
                     <Sparkles className="h-3 w-3" />
-                    محللة بالذكاء الاصطناعي
+                    {displayBill.isManual ? "قراءات مدخلة يدوياً" : "محللة بالذكاء الاصطناعي"}
                   </span>
                 ) : (
                   <span className="text-xs text-ink-400">
@@ -109,17 +129,25 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
                 )}
               </div>
 
-              {displayBill.isUploaded && latestBill && (
+              {displayBill.isUploaded && (
                 <p className="mt-2 text-xs text-brand-700">
-                  تم استخراج البيانات من الملف المرفوع:{" "}
-                  <a
-                    href={latestBill.storage_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="underline font-semibold hover:text-brand-800"
-                  >
-                    {latestBill.file_name}
-                  </a>
+                  {displayBill.isManual ? (
+                    `تم إدخال البيانات يدوياً للفترة: ${manualBillData?.period}`
+                  ) : (
+                    latestBill && (
+                      <>
+                        تم استخراج البيانات من الملف المرفوع:{" "}
+                        <a
+                          href={latestBill.storage_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline font-semibold hover:text-brand-800"
+                        >
+                          {latestBill.file_name}
+                        </a>
+                      </>
+                    )
+                  )}
                 </p>
               )}
 

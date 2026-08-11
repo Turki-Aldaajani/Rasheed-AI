@@ -17,6 +17,7 @@ import { Button, EstimateNote } from "@/components/ui/Primitives";
 import { Wordmark } from "@/components/layout/Logo";
 import { cn } from "@/lib/formatting";
 import { processAndUploadBill, validateBillFile, BillMetadata } from "@/lib/billService";
+import { supabase } from "@/lib/supabaseClient";
 import styles from "./UploadScreen.module.css";
 
 export function UploadScreen({
@@ -36,6 +37,12 @@ export function UploadScreen({
   const [uploadState, setUploadState] = useState<'idle' | 'validating' | 'compressing' | 'uploading' | 'saving' | 'analyzing' | 'done' | 'error'>('idle');
   const [progress, setProgress] = useState(0);
   const [result, setResult] = useState<BillMetadata | null>(null);
+
+  // Manual Input form states
+  const [showManualForm, setShowManualForm] = useState(false);
+  const [manualAmount, setManualAmount] = useState("");
+  const [manualKwh, setManualKwh] = useState("");
+  const [manualPeriod, setManualPeriod] = useState("أغسطس 2026");
   
   // Theme state
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -159,6 +166,47 @@ export function UploadScreen({
     }, 1500);
   };
 
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!manualAmount || !manualKwh) return;
+
+    try {
+      const amountNum = parseFloat(manualAmount);
+      const kwhNum = parseFloat(manualKwh);
+      
+      if (isNaN(amountNum) || isNaN(kwhNum)) {
+        setError("الرجاء إدخال أرقام صالحة للمبلغ والاستهلاك.");
+        return;
+      }
+
+      // Save to local storage for dynamic dashboard sync
+      localStorage.setItem('rasheed_manual_bill', JSON.stringify({
+        amount: amountNum,
+        kwh: kwhNum,
+        period: manualPeriod,
+        timestamp: Date.now()
+      }));
+
+      // Insert metadata into bills table in Supabase
+      const mockUserId = 'usr_987654321_invoice';
+      await supabase.from('bills').insert({
+        user_id: mockUserId,
+        file_name: 'إدخال يدوي',
+        file_size: 0,
+        file_type: 'manual',
+        storage_url: 'manual', // indicates local override
+        created_at: new Date().toISOString()
+      });
+
+      // Refresh router cache and navigate
+      router.refresh();
+      onAnalyze();
+    } catch (err: any) {
+      console.error("Error in handleManualSubmit:", err);
+      setError("حدث خطأ أثناء حفظ البيانات المدخلة يدوياً.");
+    }
+  };
+
   const formatFileSize = (bytes: number): string => {
     if (bytes === 0) return '0 بايت';
     const k = 1024;
@@ -212,15 +260,80 @@ export function UploadScreen({
       </header>
 
       <div className={styles.card}>
-        <div className="rs-rise">
-          <h1 className={styles.title}>حلّل فاتورتك</h1>
-          <p className={styles.subtitle}>
-            ارفع فاتورة الكهرباء أو المياه وسيساعدك رشيد على فهم استهلاك منزلك.
-          </p>
-        </div>
+        {showManualForm ? (
+          <form onSubmit={handleManualSubmit} className="rs-rise space-y-4">
+            <h2 className="text-xl font-bold text-ink-900 mb-1">إدخال بيانات الفاتورة يدوياً</h2>
+            <p className="text-sm text-ink-500 mb-4">أدخل قراءات الفاتورة مباشرة للمتابعة إلى لوحة التحكم.</p>
+            
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-ink-700">مبلغ الفاتورة (ريال سعودي)</label>
+              <input
+                type="number"
+                required
+                placeholder="مثال: 350"
+                value={manualAmount}
+                onChange={(e) => setManualAmount(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-ink-300 focus:outline-none focus:border-brand-500 bg-white text-ink-900"
+              />
+            </div>
 
-        {/* Upload Zone */}
-        {!file && (
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-ink-700">الاستهلاك (كيلوواط ساعة)</label>
+              <input
+                type="number"
+                required
+                placeholder="مثال: 1250"
+                value={manualKwh}
+                onChange={(e) => setManualKwh(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-ink-300 focus:outline-none focus:border-brand-500 bg-white text-ink-900"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="block text-sm font-semibold text-ink-700">شهر الفاتورة / فترتها</label>
+              <input
+                type="text"
+                required
+                placeholder="مثال: أغسطس 2026"
+                value={manualPeriod}
+                onChange={(e) => setManualPeriod(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-ink-300 focus:outline-none focus:border-brand-500 bg-white text-ink-900"
+              />
+            </div>
+
+            {error && (
+              <p className="text-xs text-alert font-semibold mt-1">{error}</p>
+            )}
+
+            <div className="pt-4 flex gap-3">
+              <Button type="submit" size="lg" className="flex-1 justify-center">
+                حفظ ومتابعة
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <Button 
+                type="button" 
+                variant="secondary" 
+                size="lg" 
+                onClick={() => {
+                  setShowManualForm(false);
+                  handleRemoveFile();
+                }}
+              >
+                إلغاء
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <div className="rs-rise">
+              <h1 className={styles.title}>حلّل فاتورتك</h1>
+              <p className={styles.subtitle}>
+                ارفع فاتورة الكهرباء أو المياه وسيساعدك رشيد على فهم استهلاك منزلك.
+              </p>
+            </div>
+
+            {/* Upload Zone */}
+            {!file && (
           <div
             className={cn(
               styles.dropzone,
@@ -331,6 +444,8 @@ export function UploadScreen({
             )}
           </div>
         )}
+      </>
+    )}
 
         {/* Progress Card */}
         {uploadState !== 'idle' && uploadState !== 'error' && (
@@ -363,6 +478,18 @@ export function UploadScreen({
             <div className={styles.alertContent}>
               <h4 className={styles.alertTitle}>خطأ في معالجة الفاتورة</h4>
               <p>{error}</p>
+              
+              {/* Fallback to Manual Input Button */}
+              <div className="mt-3">
+                <Button 
+                  variant="secondary" 
+                  size="md" 
+                  className="bg-white hover:bg-ink-100 border border-ink-300 text-ink-900 flex gap-2 items-center"
+                  onClick={() => setShowManualForm(true)}
+                >
+                  أدخل البيانات يدوياً كبديل
+                </Button>
+              </div>
             </div>
           </div>
         )}
