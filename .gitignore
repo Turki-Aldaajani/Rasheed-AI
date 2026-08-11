@@ -11,3 +11,8 @@ yarn-error.log*
 !.env.example
 next-env.d.ts
 tsconfig.tsbuildinfo
+
+# Playwright
+playwright-report/
+test-results/
+blob-report/
