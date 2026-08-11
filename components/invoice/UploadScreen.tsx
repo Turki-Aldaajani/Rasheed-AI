@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ArrowRight,
@@ -9,223 +8,103 @@ import {
   Sparkles,
   Trash2,
   UploadCloud,
-  Camera,
-  CheckCircle2,
-  AlertCircle
 } from "lucide-react";
 import { Button, EstimateNote } from "@/components/ui/Primitives";
 import { Wordmark } from "@/components/layout/Logo";
 import { cn } from "@/lib/formatting";
-import { processAndUploadBill, validateBillFile, BillMetadata } from "@/lib/billService";
-import styles from "./UploadScreen.module.css";
+import { validateInvoiceFile } from "@/lib/invoice-extraction-client";
+
+type Selected = {
+  file: File;
+  name: string;
+  sizeLabel: string;
+  previewUrl: string | null;
+};
+
+function formatSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} بايت`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} كيلوبايت`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} ميجابايت`;
+}
 
 export function UploadScreen({
   onAnalyze,
+  onDemo,
   onBack,
 }: {
-  onAnalyze: () => void;
+  onAnalyze: (file: File) => void;
+  onDemo: () => void;
   onBack: () => void;
 }) {
-  const router = useRouter();
   const [dragging, setDragging] = useState(false);
-  const [file, setFile] = useState<File | null>(null);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [selected, setSelected] = useState<Selected | null>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  // Upload and OCR states
-  const [uploadState, setUploadState] = useState<'idle' | 'validating' | 'compressing' | 'uploading' | 'saving' | 'analyzing' | 'done' | 'error'>('idle');
-  const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<BillMetadata | null>(null);
-  
-  // Theme state
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
   const inputRef = useRef<HTMLInputElement>(null);
-  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const previewRef = useRef<string | null>(null);
 
-  const triggerCameraSelect = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    cameraInputRef.current?.click();
-  };
-
-  // Detect and synchronize dark mode setting
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const isDark = document.documentElement.classList.contains('dark') || 
-                     document.documentElement.getAttribute('data-theme') === 'dark';
-      setIsDarkMode(isDark);
-    }
-  }, []);
-
-  // Clean up Object URL
   useEffect(() => {
     return () => {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      if (previewRef.current) URL.revokeObjectURL(previewRef.current);
     };
-  }, [previewUrl]);
+  }, []);
 
-  // Toggle local dark theme
-  const toggleTheme = () => {
-    const nextDark = !isDarkMode;
-    setIsDarkMode(nextDark);
-    if (nextDark) {
-      document.documentElement.classList.add('dark');
-      document.documentElement.setAttribute('data-theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      document.documentElement.setAttribute('data-theme', 'light');
-    }
-  };
-
-  const acceptFile = useCallback((selectedFile: File) => {
-    setError(null);
-    setResult(null);
-    setUploadState('idle');
-    setProgress(0);
-
-    const validation = validateBillFile(selectedFile);
-    if (!validation.isValid) {
-      setError(validation.errorMessage || 'ملف غير صالح.');
-      setFile(null);
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-        setPreviewUrl(null);
-      }
+  const accept = useCallback((file: File) => {
+    const validationError = validateInvoiceFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
-
-    setFile(selectedFile);
-    
-    if (selectedFile.type.startsWith("image/")) {
-      const url = URL.createObjectURL(selectedFile);
-      setPreviewUrl(url);
-    } else {
-      if (previewUrl) URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
-  }, [previewUrl]);
-
-  const handleRemoveFile = () => {
-    setFile(null);
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    const previewUrl = file.type.startsWith("image/")
+      ? URL.createObjectURL(file)
+      : null;
+    previewRef.current = previewUrl;
     setError(null);
-    setResult(null);
-    setUploadState('idle');
-    setProgress(0);
-    if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
-      setPreviewUrl(null);
-    }
-    if (inputRef.current) inputRef.current.value = "";
-    if (cameraInputRef.current) cameraInputRef.current.value = "";
-  };
-
-  const handleUpload = async () => {
-    if (!file) return;
-
-    // Temporary/Mock user ID for prototype demonstration
-    const mockUserId = 'usr_987654321_invoice';
-
-    const uploadResult = await processAndUploadBill(
+    setSelected({
       file,
-      mockUserId,
-      (stage, currentProgress) => {
-        setUploadState(stage);
-        setProgress(currentProgress);
-      }
-    );
+      name: file.name,
+      sizeLabel: formatSize(file.size),
+      previewUrl,
+    });
+  }, []);
 
-    if (!uploadResult.success) {
-      setUploadState('error');
-      setError(uploadResult.error || 'حدث خطأ أثناء معالجة الفاتورة.');
-      return;
-    }
-
-    // High fidelity analysis mock
-    setUploadState('analyzing');
-    setProgress(95);
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setUploadState('done');
-    setProgress(100);
-    setResult(uploadResult.data || null);
-
-    // Refresh Next.js page data cache so the dashboard updates
-    router.refresh();
-
-    // Call onAnalyze parent callback after a brief success animation delay
-    setTimeout(() => {
-      onAnalyze();
-    }, 1500);
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return '0 بايت';
-    const k = 1024;
-    const sizes = ['بايت', 'كيلوبايت', 'ميجابايت'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  };
-
-  const getStatusText = (): string => {
-    switch (uploadState) {
-      case 'validating':
-        return 'جاري التحقق من صحة الملف وحجمه...';
-      case 'compressing':
-        return 'جاري ضغط وتحسين جودة الصورة لتقليل الحجم...';
-      case 'uploading':
-        return 'جاري رفع الملف إلى مخزن البيانات السحابي...';
-      case 'saving':
-        return 'جاري تسجيل الفاتورة وحفظ البيانات الوصفية...';
-      case 'analyzing':
-        return 'جاري فحص وتحليل بيانات الفاتورة ذكياً (OCR)...';
-      case 'done':
-        return 'تم الرفع والتحليل بنجاح!';
-      case 'error':
-        return 'فشلت العملية.';
-      default:
-        return 'جاهز للرفع';
-    }
+  const clear = () => {
+    if (previewRef.current) URL.revokeObjectURL(previewRef.current);
+    previewRef.current = null;
+    setSelected(null);
+    setError(null);
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   return (
-    <div className={styles.container}>
-      {/* Theme Toggle Widget */}
-      <div className={styles.themeToggle}>
-        <button 
-          onClick={toggleTheme} 
-          className={styles.themeButton}
-          aria-label="تغيير المظهر"
-        >
-          {isDarkMode ? "☀️ الوضع الفاتح" : "🌙 الوضع الداكن"}
-        </button>
-      </div>
-
-      <header className="border-b border-ink-100 mb-6 pb-4">
-        <div className="flex items-center justify-between">
+    <div className="min-h-dvh bg-white">
+      <header className="border-b border-ink-100">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-5 py-4 sm:px-8">
           <Wordmark />
-          <Button variant="ghost" onClick={onBack} disabled={uploadState !== 'idle' && uploadState !== 'done' && uploadState !== 'error'}>
+          <Button variant="ghost" onClick={onBack}>
             <ArrowRight className="h-4 w-4" />
             رجوع
           </Button>
         </div>
       </header>
 
-      <div className={styles.card}>
+      <main className="mx-auto max-w-3xl px-5 py-12 sm:px-8 sm:py-16">
         <div className="rs-rise">
-          <h1 className={styles.title}>حلّل فاتورتك</h1>
-          <p className={styles.subtitle}>
+          <h1 className="text-3xl font-bold tracking-tight text-ink-900 sm:text-4xl">
+            حلّل فاتورتك
+          </h1>
+          <p className="mt-3 text-base leading-relaxed text-ink-600">
             ارفع فاتورة الكهرباء أو المياه وسيساعدك رشيد على فهم استهلاك منزلك.
           </p>
         </div>
 
-        {/* Upload Zone */}
-        {!file && (
+        {!selected ? (
           <div
             className={cn(
-              styles.dropzone,
-              dragging && styles.dropzoneHovered,
-              "rs-rise mt-8"
+              "rs-rise mt-8 rounded-2xl border-2 border-dashed p-10 text-center transition-colors sm:p-14",
+              dragging
+                ? "border-brand-500 bg-brand-50"
+                : "border-ink-300 bg-ink-50/50 hover:border-ink-400"
             )}
             onDragOver={(e) => {
               e.preventDefault();
@@ -235,169 +114,119 @@ export function UploadScreen({
             onDrop={(e) => {
               e.preventDefault();
               setDragging(false);
-              const dropFile = e.dataTransfer.files?.[0];
-              if (dropFile) acceptFile(dropFile);
+              const file = e.dataTransfer.files?.[0];
+              if (file) accept(file);
             }}
-            onClick={() => inputRef.current?.click()}
           >
-            <div className={styles.iconWrapper}>
-              <UploadCloud className="h-10 w-10 text-brand-600" strokeWidth={1.75} />
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border border-ink-200 bg-white">
+              <UploadCloud
+                className="h-6 w-6 text-brand-700"
+                strokeWidth={1.75}
+              />
             </div>
-            
-            <p className={styles.dropText}>اسحب الفاتورة هنا</p>
-            <p className={styles.subText}>أو انقر لاختيار ملف من جهازك (الحد الأقصى: 10 ميجابايت)</p>
-            <p className={styles.subText} style={{ marginTop: '4px', fontWeight: 'bold' }}>PDF / JPG / PNG</p>
+            <p className="mt-5 text-lg font-semibold text-ink-900">
+              اسحب الفاتورة هنا
+            </p>
+            <p className="mt-1 text-sm text-ink-500">أو اختر ملفًا من جهازك</p>
 
-            <div className={styles.actionDivider}>أو</div>
-
-            {/* Mobile Camera Capture */}
             <Button
               variant="secondary"
-              className="mt-2 flex gap-2 items-center"
-              onClick={triggerCameraSelect}
+              className="mt-6"
+              onClick={() => inputRef.current?.click()}
             >
-              <Camera className="h-4 w-4" />
-              التقاط صورة للفاتورة مباشرة
+              اختيار ملف
             </Button>
+
+            <p className="mt-6 text-xs tracking-wide text-ink-400">
+              PDF / JPG / PNG · حتى 15 ميجابايت
+            </p>
+
+            <input
+              ref={inputRef}
+              type="file"
+              accept=".pdf,.jpg,.jpeg,.png"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) accept(file);
+              }}
+            />
           </div>
-        )}
-
-        {/* Hidden inputs */}
-        <input
-          ref={inputRef}
-          type="file"
-          accept=".pdf,.jpg,.jpeg,.png"
-          className="hidden"
-          onChange={(e) => e.target.files?.[0] && acceptFile(e.target.files[0])}
-        />
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          className="hidden"
-          onChange={(e) => e.target.files?.[0] && acceptFile(e.target.files[0])}
-        />
-
-        {/* Selected file and Preview block */}
-        {file && (
-          <div className={`${styles.previewContainer} rs-rise`}>
-            <div className={styles.previewHeader}>
-              <div className="min-w-0 flex-1 flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50">
-                  <FileText className="h-5 w-5 text-brand-700" strokeWidth={1.75} />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-ink-900 text-sm">
-                    {file.name}
-                  </p>
-                  <p className="mt-0.5 text-xs text-ink-500">
-                    {formatFileSize(file.size)}
-                  </p>
-                </div>
+        ) : (
+          <div className="rs-rise mt-8 overflow-hidden rounded-2xl border border-ink-200">
+            <div className="flex items-center gap-4 border-b border-ink-100 p-5">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-brand-50">
+                <FileText className="h-5 w-5 text-brand-700" strokeWidth={1.75} />
               </div>
-              <button 
-                onClick={handleRemoveFile} 
-                className={styles.removeButton}
-                title="إزالة الملف"
-                disabled={uploadState !== 'idle' && uploadState !== 'done' && uploadState !== 'error'}
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-
-            {/* Render Preview image */}
-            {previewUrl ? (
-              <div className={styles.imagePreviewWrapper}>
-                <img src={previewUrl} alt="معاينة الفاتورة" className={styles.imagePreview} />
-              </div>
-            ) : (
-              <div className={styles.pdfPreviewWrapper}>
-                <FileText className="h-10 w-10 text-ink-300" strokeWidth={1.5} />
-                <p className="text-sm text-ink-500">
-                  ملف PDF — سيتم قراءته واستخراج بياناته أثناء التحليل
+              <div className="min-w-0 flex-1">
+                <p className="truncate font-medium text-ink-900">
+                  {selected.name}
+                </p>
+                <p className="mt-0.5 text-xs text-ink-500">
+                  {selected.sizeLabel} · جاهز للتحليل
                 </p>
               </div>
-            )}
-
-            {/* Upload trigger button */}
-            {uploadState === 'idle' && (
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <Button size="lg" className="w-full justify-center" onClick={handleUpload}>
-                  حلّل الفاتورة المرفوعة
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Progress Card */}
-        {uploadState !== 'idle' && uploadState !== 'error' && (
-          <div className={styles.progressCard}>
-            <div className={styles.progressHeader}>
-              <span className={styles.progressLabel}>{getStatusText()}</span>
-              <span className={styles.progressPercentage}>{progress}%</span>
-            </div>
-            
-            <div className={styles.progressTrack}>
-              <div className={styles.progressFill} style={{ width: `${progress}%` }}></div>
+              <Button
+                variant="ghost"
+                onClick={clear}
+                aria-label="إزالة الملف"
+                className="shrink-0 px-3"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span className="hidden sm:inline">إزالة</span>
+              </Button>
             </div>
 
-            <div className={styles.stagesWrapper}>
-              <span className={uploadState === 'validating' ? styles.stageActive : ''}>التحقق</span>
-              <span className={uploadState === 'compressing' ? styles.stageActive : ''}>الضغط</span>
-              <span className={uploadState === 'uploading' ? styles.stageActive : ''}>الرفع</span>
-              <span className={uploadState === 'saving' ? styles.stageActive : ''}>التسجيل</span>
-              <span className={uploadState === 'analyzing' ? styles.stageActive : ''}>التحليل</span>
+            <div className="flex items-center justify-center bg-ink-50 p-6">
+              {selected.previewUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={selected.previewUrl}
+                  alt="معاينة الفاتورة"
+                  className="max-h-72 w-auto rounded-lg border border-ink-200 bg-white object-contain shadow-sm"
+                />
+              ) : (
+                <div className="flex flex-col items-center gap-3 py-8 text-center">
+                  <FileText className="h-9 w-9 text-ink-300" strokeWidth={1.5} />
+                  <p className="text-sm text-ink-500">
+                    ملف PDF — ستُقرأ بياناته أثناء التحليل
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Arabic Error Dialog */}
-        {error && (
-          <div className={`${styles.alert} ${styles.alertError} rs-rise`} role="alert">
-            <div className={styles.alertIcon}>
-              <AlertCircle className="h-5 w-5" />
-            </div>
-            <div className={styles.alertContent}>
-              <h4 className={styles.alertTitle}>خطأ في معالجة الفاتورة</h4>
-              <p>{error}</p>
-            </div>
-          </div>
-        )}
+        {error ? (
+          <p
+            role="alert"
+            className="mt-4 rounded-xl bg-alert-soft px-4 py-3 text-sm text-alert"
+          >
+            {error}
+          </p>
+        ) : null}
 
-        {/* Success Alert */}
-        {uploadState === 'done' && result && (
-          <div className={`${styles.alert} ${styles.alertSuccess} rs-rise`}>
-            <div className={styles.alertIcon}>
-              <CheckCircle2 className="h-5 w-5" />
-            </div>
-            <div className={styles.alertContent}>
-              <h4 className={styles.alertTitle}>تم رفع الفاتورة ومعالجتها بنجاح!</h4>
-              <p>يتم الآن نقلك إلى لوحة التحليلات الخاصة بالاستهلاك...</p>
-              <ul className={styles.alertDetails}>
-                <li><strong>اسم الملف:</strong> {result.file_name}</li>
-                <li><strong>الحجم بعد التحسين:</strong> {formatFileSize(result.file_size)}</li>
-                <li><strong>الرابط السحابي:</strong> <a href={result.storage_url} target="_blank" rel="noreferrer" style={{ textDecoration: 'underline' }}>معاينة الملف المرفوع</a></li>
-              </ul>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="mt-8 flex flex-wrap items-center gap-3">
-        {uploadState === 'idle' && !file && (
-          <Button size="lg" variant="secondary" onClick={onAnalyze}>
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <Button
+            size="lg"
+            disabled={!selected}
+            onClick={() => selected && onAnalyze(selected.file)}
+          >
+            حلّل الفاتورة
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <Button size="lg" variant="secondary" onClick={onDemo}>
             <Sparkles className="h-4 w-4" />
             استخدم فاتورة تجريبية
           </Button>
-        )}
-      </div>
+        </div>
 
-      <EstimateNote className="mt-8">
-        في هذا النموذج الأولي، يتم ضغط الفواتير محلياً وحفظ بياناتها بأمان في قاعدة بيانات السحابية الخاصة بالمشروع.
-      </EstimateNote>
+        <EstimateNote className="mt-8">
+          عند تحليل فاتورة حقيقية، تُرسَل الصورة إلى خادم رشيد لقراءتها عبر Gemini
+          Vision ثم تُستخدم البيانات المستخرجة في لوحة النتائج. لا تُخزَّن
+          الفاتورة بعد المعالجة في هذا الإصدار.
+        </EstimateNote>
+      </main>
     </div>
   );
 }
