@@ -16,9 +16,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { mockSingle, mockSelect, mockInsert, mockFrom } = vi.hoisted(() => {
   const mockSingle = vi.fn();
-  const mockSelect = vi.fn(() => ({ single: mockSingle }));
-  const mockInsert = vi.fn(() => ({ select: mockSelect }));
-  const mockFrom = vi.fn(() => ({ insert: mockInsert }));
+  const mockSelect = vi.fn((_columns?: string) => ({ single: mockSingle }));
+  const mockInsert = vi.fn((_row: Record<string, unknown>) => ({ select: mockSelect }));
+  const mockFrom = vi.fn((_table: string) => ({ insert: mockInsert }));
   return { mockSingle, mockSelect, mockInsert, mockFrom };
 });
 
