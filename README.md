@@ -2,6 +2,8 @@
 
 مساعد ذكي لترشيد استهلاك الطاقة والمياه في المنازل السعودية.
 
+> **🔗 الموقع المباشر:** [rasheed-ai-795.netlify.app](https://rasheed-ai-795.netlify.app/)
+
 > **نموذج تجربة أولي (Experience Prototype)** — الواجهة كاملة وتفاعلية، والحسابات محلية
 > وحتمية. لم تُربط بعد بـ Gemini Vision أو واجهات الطقس والتعرفة الرسمية.
 
@@ -38,17 +40,38 @@
 | التوفير المحتمل | ≈ 135 ريال شهريًا (22٪) |
 | فاتورة المياه | 180 ريال · 35 م³ |
 
-## التشغيل
+## التشغيل المحلي
+
+### المتطلبات
+
+- [Node.js](https://nodejs.org/) 18 أو أحدث (مطلوب من Next.js 15)
+- npm (يأتي مع Node.js)
+
+### التثبيت والتشغيل
 
 ```bash
+git clone https://github.com/Turki-Aldaajani/Rasheed-AI.git
+cd Rasheed-AI
 npm install
-npm run dev      # http://localhost:3000
+npm run dev          # → http://localhost:3000
 ```
 
+### أوامر إضافية
+
 ```bash
-npm run build    # بناء الإصدار النهائي
-npm run typecheck
+npm run build        # بناء الإصدار النهائي
+npm run start        # تشغيل إصدار الإنتاج بعد البناء
+npm run typecheck    # فحص الأنواع (TypeScript)
+npm run lint         # فحص جودة الشيفرة
 ```
+
+## النشر (Deployment)
+
+الموقع منشور على **Netlify** على الرابط:
+**[rasheed-ai-795.netlify.app](https://rasheed-ai-795.netlify.app/)**
+
+> **ملاحظة:** لا يوجد ملف `netlify.toml` أو إعدادات نشر أخرى في المستودع.
+> آلية النشر (تلقائي من Git أو يدوي) غير موثّقة في المستودع.
 
 ## البنية
 
