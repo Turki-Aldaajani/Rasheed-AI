@@ -20,7 +20,7 @@ import { WhatIfSection } from "@/components/simulator/WhatIfSection";
 import { WaterSection } from "@/components/water/WaterSection";
 import { recommendedSettings, simulationDefaults, recommendations as baselineRecommendations } from "@/data/mock-analysis";
 import type { SimulationInput } from "@/lib/simulation";
-import type { HouseholdProfile } from "@/lib/household";
+import { getHouseholdProfile, type HouseholdProfile } from "@/lib/household";
 import { getPersonalizedRecommendations } from "@/lib/personalization";
 import type { ExtractedInvoice } from "@/types/extracted-invoice";
 import { saveBillFromExtraction } from "@/lib/billService";
@@ -85,12 +85,24 @@ export function AppShell({
     if (outcome.mode === "extracted") {
       setExtractedInvoice(outcome.data);
 
-      // Persist to Supabase when the user is authenticated and has a household.
-      if (isAuthenticated && profile?.id) {
-        const result = await saveBillFromExtraction(outcome.data, profile.id);
-        if (!result.success) {
-          // Surface the real error — do NOT silently swallow it.
-          setSaveError(result.error);
+      // Persist to Supabase when the user is authenticated.
+      if (isAuthenticated) {
+        let householdId = profile?.id;
+        if (!householdId) {
+          try {
+            const currentProfile = await getHouseholdProfile();
+            householdId = currentProfile?.id;
+          } catch (err) {
+            console.error("Error retrieving household profile:", err);
+          }
+        }
+
+        if (householdId) {
+          const result = await saveBillFromExtraction(outcome.data, householdId);
+          if (!result.success) {
+            // Surface the real error — do NOT silently swallow it.
+            setSaveError(result.error);
+          }
         }
       }
     } else {
