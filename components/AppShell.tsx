@@ -14,8 +14,10 @@ import { AnalysisSection } from "@/components/analysis/AnalysisSection";
 import { PlanSection } from "@/components/savings/PlanSection";
 import { WhatIfSection } from "@/components/simulator/WhatIfSection";
 import { WaterSection } from "@/components/water/WaterSection";
-import { recommendedSettings, simulationDefaults } from "@/data/mock-analysis";
+import { recommendedSettings, simulationDefaults, recommendations as baselineRecommendations } from "@/data/mock-analysis";
 import type { SimulationInput } from "@/lib/simulation";
+import type { HouseholdProfile } from "@/lib/household";
+import { getPersonalizedRecommendations } from "@/lib/personalization";
 
 type Stage = "landing" | "upload" | "analyzing" | "dashboard";
 
@@ -27,10 +29,12 @@ export function AppShell({
   initialStage = "landing",
   onExit,
   isAuthenticated = false,
+  profile = null,
 }: {
   initialStage?: Stage;
   onExit?: () => void;
   isAuthenticated?: boolean;
+  profile?: HouseholdProfile | null;
 }) {
   const router = useRouter();
   const [stage, setStage] = useState<Stage>(initialStage);
@@ -38,6 +42,8 @@ export function AppShell({
   const [settings, setSettings] = useState<SimulationInput>({
     ...simulationDefaults,
   });
+
+  const personalizedRecommendations = getPersonalizedRecommendations(profile, baselineRecommendations);
 
   /* التمرير لأعلى عند كل انتقال حتى لا تبدأ الشاشة من منتصفها */
   useEffect(() => {
@@ -97,7 +103,7 @@ export function AppShell({
           <AnalysisSection onNavigate={setSection} />
         ) : null}
         {section === "plan" ? (
-          <PlanSection onNavigate={setSection} onApplyPlan={applyPlan} />
+          <PlanSection onNavigate={setSection} onApplyPlan={applyPlan} recs={personalizedRecommendations} />
         ) : null}
         {section === "whatIf" ? (
           <WhatIfSection

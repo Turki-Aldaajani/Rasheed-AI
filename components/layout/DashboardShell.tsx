@@ -8,7 +8,9 @@ import {
   Droplets,
   RotateCcw,
   LogOut,
+  Settings,
 } from "lucide-react";
+import Link from "next/link";
 import { Wordmark } from "@/components/layout/Logo";
 import { cn } from "@/lib/formatting";
 import { household } from "@/data/mock-household";
@@ -76,14 +78,24 @@ export function DashboardShell({
               <RotateCcw className="h-4 w-4" />
             </button>
             {isAuthenticated && (
-              <button
-                onClick={() => logout()}
-                className="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
-                aria-label="تسجيل الخروج"
-                title="تسجيل الخروج"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
+              <>
+                <Link
+                  href="/app/profile"
+                  className="rounded-lg p-2 text-ink-500 transition-colors hover:bg-ink-100 hover:text-ink-700"
+                  aria-label="ملف المنزل"
+                  title="ملف المنزل"
+                >
+                  <Settings className="h-4 w-4" />
+                </Link>
+                <button
+                  onClick={() => logout()}
+                  className="rounded-lg p-2 text-red-500 transition-colors hover:bg-red-50 hover:text-red-600"
+                  aria-label="تسجيل الخروج"
+                  title="تسجيل الخروج"
+                >
+                  <LogOut className="h-4 w-4" />
+                </button>
+              </>
             )}
           </div>
         </div>
