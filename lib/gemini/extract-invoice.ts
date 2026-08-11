@@ -121,30 +121,62 @@ export type ExtractInvoiceInput = {
   mimeType: string;
 };
 
+export type ExtractInvoiceOutput = {
+  data: ExtractedInvoice;
+  promptTokens?: number;
+  candidatesTokens?: number;
+};
+
 /**
  * Sends an invoice image/PDF to Gemini Vision and returns structured bill data.
  * Retries transient network failures up to 3 times with a configurable timeout.
+ * Respects GEMINI_DEV_MOCK environment variable for development/testing protection.
  */
 export async function extractInvoiceFromImage(
   input: ExtractInvoiceInput,
-): Promise<ExtractedInvoice> {
+): Promise<ExtractInvoiceOutput> {
+  // Development protection mode: mock response to avoid real Gemini API usage costs
+  if (process.env.GEMINI_DEV_MOCK === "true") {
+    return {
+      data: {
+        serviceType: "electricity",
+        periodLabel: "يناير 2025",
+        consumption: 450,
+        consumptionUnit: "kwh",
+        amountSar: 135,
+        accountNumber: "10001234567",
+      },
+      promptTokens: 250,
+      candidatesTokens: 120,
+    };
+  }
+
   const model = getModel();
   const timeoutMs = getGeminiTimeoutMs();
   const filePart = toInlinePart(input.buffer, input.mimeType);
   const userMessage = getInvoiceExtractionUserMessage();
 
-  const response = await withRetry(
+  let promptTokens = 0;
+  let candidatesTokens = 0;
+
+  const responseText = await withRetry(
     async (signal) => {
       const result = await model.generateContent(
         [userMessage, filePart],
         { signal } as Parameters<GenerativeModel["generateContent"]>[1],
       );
+
+      if (result.response.usageMetadata) {
+        promptTokens = result.response.usageMetadata.promptTokenCount ?? 0;
+        candidatesTokens = result.response.usageMetadata.candidatesTokenCount ?? 0;
+      }
+
       return result.response.text();
     },
     { timeoutMs, maxAttempts: 3, baseDelayMs: 1_000 },
   );
 
-  const trimmed = response.trim();
+  const trimmed = responseText.trim();
   if (!trimmed) {
     throw new Error("لم يُرجع النموذج أي بيانات. تأكد من وضوح صورة الفاتورة.");
   }
@@ -156,5 +188,6 @@ export async function extractInvoiceFromImage(
     throw new Error("تعذّر تحليل استجابة نموذج الذكاء الاصطناعي.");
   }
 
-  return parseExtractedInvoice(parsed);
+  const data = parseExtractedInvoice(parsed);
+  return { data, promptTokens, candidatesTokens };
 }
