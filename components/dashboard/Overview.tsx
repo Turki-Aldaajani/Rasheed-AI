@@ -268,7 +268,13 @@ export function Overview({ onNavigate }: { onNavigate: (id: SectionId) => void }
       </section>
 
       {/* ——— روابط سريعة ——— */}
-      <section className="rs-rise grid gap-4 sm:grid-cols-3 [animation-delay:180ms]">
+      <section className="rs-rise grid gap-4 sm:grid-cols-2 lg:grid-cols-4 [animation-delay:180ms]">
+        <LinkCard
+          title="سجل الفواتير"
+          body="تتبع استهلاكك وتكلفتك شهراً بشهر لتلاحظ أثر التحسينات."
+          cta="عرض السجل"
+          href="/app/history"
+        />
         <QuickCard
           title="أين يذهب استهلاكك؟"
           body={`${topCategory.share}٪ من فاتورتك قد تكون في ${topCategory.label}.`}
@@ -408,5 +414,40 @@ function QuickCard({
         <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
       </span>
     </button>
+  );
+}
+
+import Link from "next/link";
+
+function LinkCard({
+  title,
+  body,
+  cta,
+  icon,
+  href,
+}: {
+  title: string;
+  body: string;
+  cta: string;
+  icon?: React.ReactNode;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="group flex h-full flex-col rounded-2xl border border-ink-200 bg-white p-5 text-right transition-colors hover:border-brand-300 hover:bg-brand-50/40 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+    >
+      <span className="flex items-center gap-2 font-semibold text-ink-900">
+        {icon ? <span className="text-brand-700">{icon}</span> : null}
+        {title}
+      </span>
+      <span className="mt-2 flex-1 text-sm leading-relaxed text-ink-500">
+        {body}
+      </span>
+      <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-brand-700">
+        {cta}
+        <ArrowLeft className="h-3.5 w-3.5 transition-transform group-hover:-translate-x-0.5" />
+      </span>
+    </Link>
   );
 }
