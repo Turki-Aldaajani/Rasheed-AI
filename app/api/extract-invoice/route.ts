@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import { extractInvoiceFromImage } from "@/lib/gemini/extract-invoice";
-import { checkRateLimit, getClientKey } from "@/lib/rate-limit";
+import {
+  checkDurableRateLimit,
+  getClientKey,
+  logGeminiUsage,
+} from "@/lib/rate-limit";
+import { calculateGeminiCost } from "@/lib/gemini-cost";
+import { getGeminiModel } from "@/lib/env";
+import { createClient } from "@/lib/supabase/server";
 import type { ExtractInvoiceResult } from "@/types/extracted-invoice";
 
 export const runtime = "nodejs";
@@ -13,8 +20,7 @@ const ACCEPTED_TYPES = new Set([
 
 const MAX_BYTES = 15 * 1024 * 1024;
 
-// Basic per-IP guard against unbounded Gemini cost/abuse (Issue #27).
-// Interim measure — see lib/rate-limit.ts for the durable follow-up.
+// Durable per-user / per-IP rate limit settings (Issue #27).
 const RATE_LIMIT = { limit: 5, windowMs: 60_000 };
 
 function failure(
@@ -27,17 +33,44 @@ function failure(
 
 export async function POST(request: Request): Promise<NextResponse<ExtractInvoiceResult>> {
   const clientKey = getClientKey(request);
-  const rateLimit = checkRateLimit(clientKey, RATE_LIMIT);
+
+  // Authenticate optional user session securely
+  let userId: string | null = null;
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (user) {
+      userId = user.id;
+    }
+  } catch {
+    // If auth resolution fails, fallback to guest IP tracking
+  }
+
+  // 1. Check durable rate limit (per user or per IP fallback)
+  const rateLimit = await checkDurableRateLimit({
+    userId,
+    ipAddress: clientKey,
+    limit: RATE_LIMIT.limit,
+    windowMs: RATE_LIMIT.windowMs,
+  });
+
   if (!rateLimit.allowed) {
-    const response = failure(
-      `عدد كبير من الطلبات. حاول مرة أخرى بعد ${rateLimit.retryAfterSeconds} ثانية.`,
-      429,
-      true,
-    );
+    const errorMessage = `عدد كبير من الطلبات. حاول مرة أخرى بعد ${rateLimit.retryAfterSeconds} ثانية.`;
+    await logGeminiUsage({
+      userId,
+      ipAddress: clientKey,
+      status: "rate_limited",
+      errorMessage,
+    });
+
+    const response = failure(errorMessage, 429, true);
     response.headers.set("Retry-After", String(rateLimit.retryAfterSeconds));
     return response;
   }
 
+  // 2. Read and validate upload form payload
   let form: FormData;
   try {
     form = await request.formData();
@@ -63,13 +96,34 @@ export async function POST(request: Request): Promise<NextResponse<ExtractInvoic
   }
 
   const buffer = Buffer.from(await entry.arrayBuffer());
+  const modelName = getGeminiModel();
 
+  // 3. Process extraction via Gemini Vision
   try {
-    const data = await extractInvoiceFromImage({
+    const result = await extractInvoiceFromImage({
       buffer,
       mimeType: entry.type,
     });
-    return NextResponse.json({ ok: true, data });
+
+    const { costUsd } = calculateGeminiCost({
+      model: modelName,
+      promptTokens: result.promptTokens,
+      candidatesTokens: result.candidatesTokens,
+      hasImage: true,
+    });
+
+    // Log successful Gemini call and estimated cost to Supabase
+    await logGeminiUsage({
+      userId,
+      ipAddress: clientKey,
+      model: modelName,
+      promptTokens: result.promptTokens ?? 0,
+      candidatesTokens: result.candidatesTokens ?? 0,
+      estimatedCostUsd: costUsd,
+      status: "success",
+    });
+
+    return NextResponse.json({ ok: true, data: result.data });
   } catch (error) {
     const message =
       error instanceof Error
@@ -80,6 +134,14 @@ export async function POST(request: Request): Promise<NextResponse<ExtractInvoic
       message.includes("مهلة") ||
       message.includes("network") ||
       message.includes("fetch failed");
+
+    await logGeminiUsage({
+      userId,
+      ipAddress: clientKey,
+      model: modelName,
+      status: "error",
+      errorMessage: message,
+    });
 
     return failure(message, retryable ? 503 : 422, retryable);
   }
