@@ -330,3 +330,22 @@ export function getWaterBillBreakdown(
     },
   };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Weather Function Calling Re-exports (Issue A11)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export {
+  getCityWeatherForPeriod,
+  getFallbackWeatherData,
+  clearWeatherCache,
+  getWeatherCacheSize,
+  type GetWeatherParams,
+  type WeatherPeriodResult,
+} from './weatherService';
+
+export {
+  weatherFunctionDeclaration,
+  executeWeatherTool,
+} from './gemini/weatherTool';
+
