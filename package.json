@@ -9,6 +9,7 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "verify:templates": "node scripts/verify-templates.mjs",
+    "verify:netlify-git": "node scripts/verify-netlify-git-link.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test"
