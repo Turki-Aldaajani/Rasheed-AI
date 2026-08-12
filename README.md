@@ -72,8 +72,17 @@ npm run lint         # فحص جودة الشيفرة
 الموقع منشور على **Netlify** على الرابط:
 **[rasheed-ai-795.netlify.app](https://rasheed-ai-795.netlify.app/)**
 
-> **ملاحظة:** لا يوجد ملف `netlify.toml` أو إعدادات نشر أخرى في المستودع.
-> آلية النشر (تلقائي من Git أو يدوي) غير موثّقة في المستودع.
+- **آلية النشر:** تلقائي — كل push على `main` ينشر مباشرة عبر ربط Git الرسمي بين Netlify
+  ومستودع GitHub (`Turki-Aldaajani/Rasheed-AI`). إعدادات البناء في [`netlify.toml`](netlify.toml)
+  (`npm run build` → `.next`).
+- **متغيرات البيئة على Netlify:** `GEMINI_API_KEY`، `NEXT_PUBLIC_SUPABASE_URL`،
+  `NEXT_PUBLIC_SUPABASE_ANON_KEY` — راجع [`.env.example`](.env.example) للقائمة الكاملة.
+- **نشر يدوي (بديل احتياطي):** `netlify deploy --prod` من جذر المشروع، لمن لديه صلاحية
+  الوصول لموقع Netlify.
+- **⚠️ فجوة معروفة:** لا يوجد فصل بين بيئتَي التطوير والإنتاج حاليًا (نفس مشروع Supabase
+  ونفس مفتاح Gemini في الاثنين) — راجع [Issue #28](https://github.com/Turki-Aldaajani/Rasheed-AI/issues/28).
+
+تفاصيل كاملة (بما فيها استكشاف الأخطاء) في [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## البنية
 
