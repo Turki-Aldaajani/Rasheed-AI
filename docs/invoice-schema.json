@@ -1,0 +1,64 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://rasheed.ai/schemas/invoice-extraction.schema.json",
+  "title": "ExtractedInvoice",
+  "description": "Unified JSON schema contract for structured utility bill data extracted via Gemini Vision or external parsers.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Schema version indicator for backward compatibility and migration control",
+      "default": "1.0",
+      "example": "1.0"
+    },
+    "serviceType": {
+      "type": "string",
+      "description": "Saudi utility service type",
+      "enum": ["electricity", "water"]
+    },
+    "periodLabel": {
+      "type": "string",
+      "description": "Human-readable billing period as printed on the invoice",
+      "minLength": 1
+    },
+    "periodStart": {
+      "type": "string",
+      "description": "Optional ISO start date of billing period (YYYY-MM-DD)",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "periodEnd": {
+      "type": "string",
+      "description": "Optional ISO end date of billing period (YYYY-MM-DD)",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "consumption": {
+      "type": "number",
+      "description": "Numeric consumption value (must be non-negative)",
+      "minimum": 0
+    },
+    "consumptionUnit": {
+      "type": "string",
+      "description": "Consumption unit: kwh for electricity, m3 for water",
+      "enum": ["kwh", "m3"]
+    },
+    "amountSar": {
+      "type": "number",
+      "description": "Total bill amount in Saudi Riyals (must be non-negative)",
+      "minimum": 0
+    },
+    "accountNumber": {
+      "type": "string",
+      "description": "Account number, meter number, or subscriber ID",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "serviceType",
+    "periodLabel",
+    "consumption",
+    "consumptionUnit",
+    "amountSar",
+    "accountNumber"
+  ],
+  "additionalProperties": true
+}

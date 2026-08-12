@@ -5,6 +5,10 @@ export const invoiceExtractionSchema: ResponseSchema = {
   type: SchemaType.OBJECT,
   description: "Structured utility bill data extracted from a Saudi electricity or water invoice",
   properties: {
+    version: {
+      type: SchemaType.STRING,
+      description: "Schema version indicator (e.g. 1.0)",
+    },
     serviceType: {
       type: SchemaType.STRING,
       description: "Service type: electricity or water",
@@ -14,6 +18,14 @@ export const invoiceExtractionSchema: ResponseSchema = {
     periodLabel: {
       type: SchemaType.STRING,
       description: "Billing period as printed on the invoice",
+    },
+    periodStart: {
+      type: SchemaType.STRING,
+      description: "Optional start date of billing period (YYYY-MM-DD)",
+    },
+    periodEnd: {
+      type: SchemaType.STRING,
+      description: "Optional end date of billing period (YYYY-MM-DD)",
     },
     consumption: {
       type: SchemaType.NUMBER,

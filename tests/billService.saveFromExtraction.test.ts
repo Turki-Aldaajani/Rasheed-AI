@@ -188,4 +188,38 @@ describe('saveBillFromExtraction', () => {
     expect(billsInsertArg.bill_type).toBe('water');
     expect(billsInsertArg.amount_sar).toBe(105.0);
   });
+
+  it('rejects saving when extracted invoice data violates schema contract', async () => {
+    const invalidInvoice = {
+      serviceType: 'electricity' as const,
+      periodLabel: 'يناير 2025',
+      consumption: -100, // Invalid negative consumption
+      consumptionUnit: 'kwh' as const,
+      amountSar: 480.5,
+      accountNumber: 'ACC-001',
+    };
+
+    const result = await saveBillFromExtraction(invalidInvoice, HOUSEHOLD_ID);
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain('غير مطابقة للمخطط الموحّد');
+    }
+    expect(mockFrom).not.toHaveBeenCalled();
+  });
+
+  it('includes optional period_start and period_end when provided in extracted invoice', async () => {
+    const invoiceWithDates: ExtractedInvoice = {
+      ...electricityInvoice,
+      periodStart: '2025-01-01',
+      periodEnd: '2025-01-31',
+    };
+
+    const result = await saveBillFromExtraction(invoiceWithDates, HOUSEHOLD_ID);
+
+    expect(result.success).toBe(true);
+    const billsInsertArg = mockInsert.mock.calls[0][0];
+    expect(billsInsertArg.period_start).toBe('2025-01-01');
+    expect(billsInsertArg.period_end).toBe('2025-01-31');
+  });
 });

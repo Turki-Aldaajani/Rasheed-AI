@@ -12,86 +12,10 @@ import { invoiceExtractionSchema } from "@/lib/gemini/schema";
 import { withRetry } from "@/lib/retry";
 import type { ExtractedInvoice } from "@/types/extracted-invoice";
 
-const ARABIC_DIGITS = "٠١٢٣٤٥٦٧٨٩";
-const LATIN_DIGITS = "0123456789";
-
-function normalizeArabicDigits(value: string): string {
-  return value.replace(/[٠-٩]/g, (char) => {
-    const index = ARABIC_DIGITS.indexOf(char);
-    return index >= 0 ? LATIN_DIGITS[index] : char;
-  });
-}
-
-function safeParseNumber(value: unknown): number {
-  if (typeof value === "number") {
-    return value;
-  }
-  if (typeof value === "string") {
-    let normalized = normalizeArabicDigits(value);
-    normalized = normalized
-      .replace(/[,']/g, "")
-      .replace(/[^\d.-]/g, "")
-      .trim();
-    return Number(normalized);
-  }
-  return NaN;
-}
+import { assertValidExtractedInvoice } from "@/lib/gemini/validate-invoice";
 
 function parseExtractedInvoice(raw: unknown): ExtractedInvoice {
-  if (!raw || typeof raw !== "object") {
-    throw new Error("استجابة غير صالحة من نموذج الذكاء الاصطناعي.");
-  }
-
-  const record = raw as Record<string, unknown>;
-  const serviceType = record.serviceType;
-  const consumptionUnit = record.consumptionUnit;
-
-  if (serviceType !== "electricity" && serviceType !== "water") {
-    throw new Error("تعذّر تحديد نوع الخدمة (كهرباء/مياه) من الفاتورة.");
-  }
-
-  if (consumptionUnit !== "kwh" && consumptionUnit !== "m3") {
-    throw new Error("تعذّر تحديد وحدة الاستهلاك من الفاتورة.");
-  }
-
-  const consumption = safeParseNumber(record.consumption);
-  const amountSar = safeParseNumber(record.amountSar);
-
-  if (!Number.isFinite(consumption) || consumption < 0) {
-    throw new Error("قيمة الاستهلاك غير صالحة في الاستجابة.");
-  }
-
-  if (!Number.isFinite(amountSar) || amountSar < 0) {
-    throw new Error("قيمة المبلغ غير صالحة في الاستجابة.");
-  }
-
-  const periodLabel = normalizeArabicDigits(String(record.periodLabel ?? "").trim());
-  const accountNumber = normalizeArabicDigits(String(record.accountNumber ?? "").trim());
-
-  if (!periodLabel) {
-    throw new Error("تعذّر قراءة فترة الفاتورة.");
-  }
-
-  if (!accountNumber) {
-    throw new Error("تعذّر قراءة رقم الحساب أو العداد.");
-  }
-
-  if (serviceType === "electricity" && consumptionUnit !== "kwh") {
-    throw new Error("فاتورة الكهرباء يجب أن تكون بوحدة ك.و.س.");
-  }
-
-  if (serviceType === "water" && consumptionUnit !== "m3") {
-    throw new Error("فاتورة المياه يجب أن تكون بوحدة م³.");
-  }
-
-  return {
-    serviceType,
-    periodLabel,
-    consumption,
-    consumptionUnit,
-    amountSar,
-    accountNumber,
-  };
+  return assertValidExtractedInvoice(raw);
 }
 
 function getModel(): GenerativeModel {
