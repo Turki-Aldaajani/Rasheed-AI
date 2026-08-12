@@ -18,10 +18,10 @@ import { AnalysisSection } from "@/components/analysis/AnalysisSection";
 import { PlanSection } from "@/components/savings/PlanSection";
 import { WhatIfSection } from "@/components/simulator/WhatIfSection";
 import { WaterSection } from "@/components/water/WaterSection";
-import { recommendedSettings, simulationDefaults, recommendations as baselineRecommendations } from "@/data/mock-analysis";
+import { recommendedSettings, simulationDefaults } from "@/data/mock-analysis";
 import type { SimulationInput } from "@/lib/simulation";
 import type { HouseholdProfile } from "@/lib/household";
-import { getPersonalizedRecommendations } from "@/lib/personalization";
+import { generateOperatingPlan } from "@/lib/operatingPlan";
 import type { ExtractedInvoice } from "@/types/extracted-invoice";
 import { saveBillFromExtraction } from "@/lib/billService";
 import { getHouseholdProfileAction } from "@/app/actions/household";
@@ -56,7 +56,7 @@ export function AppShell({
   const [analysisKey, setAnalysisKey] = useState(0);
   const [saveError, setSaveError] = useState<string | null>(null);
 
-  const personalizedRecommendations = getPersonalizedRecommendations(profile, baselineRecommendations);
+  const personalizedRecommendations = generateOperatingPlan(profile);
 
   /* التمرير لأعلى عند كل انتقال حتى لا تبدأ الشاشة من منتصفها */
   useEffect(() => {
